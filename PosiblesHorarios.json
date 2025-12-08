@@ -1,0 +1,132 @@
+{
+  "name": "PosiblesHorarios",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "NUMEROCANCHA",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "12ad5f15-e0d4-42d5-bb1b-eb3410b667ba",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# --- Parámetros de Configuración ---\nHORA_APERTURA = 9   # 9:00 AM\nHORA_CIERRE = 23    # 23:00 PM (El último turno posible empieza a las 22:00 y termina a las 23:00)\n# -----------------------------------\n\n# Obtenemos los items de entrada de forma segura\nitems_input = _input.all()\n\n# 1. Crear un set con las horas ocupadas\nreservas_existentes = set()\n\nfor item in items_input:\n    try:\n        json_data = item.json\n        horario_str = json_data.get(\"HORARIO\") # \"18:00:00\"\n        tiempo_raw = json_data.get(\"TIEMPO\", 0) # \"1.0\" o \"2.0\"\n        \n        if horario_str:\n            # A. Extraemos la hora de inicio (ignoramos minutos por ahora si son turnos fijos)\n            start_hour = int(horario_str.split(':')[0])\n            \n            # B. CORRECCIÓN CRÍTICA: Convertimos string decimal \"1.0\" a float y luego a int\n            duracion = int(float(tiempo_raw))\n            \n            # C. Llenamos el set con las horas ocupadas\n            # Si es a las 18:00 y dura 2 horas, ocupa la 18 y la 19.\n            for i in range(duracion):\n                reservas_existentes.add(start_hour + i)\n                \n    except Exception as e:\n        # Si un dato viene mal, lo ignoramos y seguimos\n        pass\n\n# 2. Generar la lista de franjas disponibles\nfranjas_disponibles = []\n\nfor hora in range(HORA_APERTURA, HORA_CIERRE):\n    \n    # 3. Si la hora NO está ocupada, la agregamos\n    if hora not in reservas_existentes:\n        \n        # Formateo con ceros a la izquierda (ej: \"09:00\", \"10:00\")\n        horario_disponible_str = f\"{hora:02d}:00\"\n        \n        franjas_disponibles.append({\n            'json': {\n                'horario_disponible': horario_disponible_str,\n                'hora_numero': hora # Útil si necesitas filtrar por número después\n            }\n        })\n\n# 4. Resultado final\nif not franjas_disponibles:\n    return [{'json': {'mensaje': 'No hay turnos disponibles hoy'}}]\n\nreturn franjas_disponibles"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "c0905322-ae18-4d7f-84ca-e5f123c32924",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "NUMEROCANCHA",
+              "value": "={{ $json.NUMEROCANCHA }}"
+            },
+            {
+              "column": "FECHA",
+              "value": "={{ DateTime.fromFormat($json.FECHA, 'dd/MM/yyyy').toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "639056da-6c52-453b-ac75-c60bc020c86a",
+      "name": "Select rows from a table",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "FECHA": "08/12/2025",
+          "NUMEROCANCHA": 1
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98fdf443-5b0c-46b1-84f8-f7717e099ab4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "5V6I2THeKfU2YSui",
+  "tags": []
+}
