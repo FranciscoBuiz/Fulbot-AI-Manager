@@ -71,3 +71,32 @@ CREATE TABLE IF NOT EXISTS negocio.estados_conversaciones (
     "FECHA" TIMESTAMP WITH TIME ZONE,
     "AVISOS" INTEGER DEFAULT 0
 );
+```
+### 🚀 Instalación
+Importa el archivo .json del flujo en tu n8n.
+
+Configura las credenciales en n8n para:
+
+1.  Postgres account
+2.  Redis account
+3.  Google Gemini(PaLM) Api account
+4.  Bearer Auth account (Para tu API de WhatsApp)
+5.  mp-prueba (MercadoPago)
+
+Importante: Este flujo principal llama a otros sub-flujos (Tools) que deben existir en tu n8n:
+
+1.  ProximoHorarioDisponible
+2.  VerDisponibilidadFulbot
+3.  ReservarCanchaFulbot
+4.  RecuperarReservasFulbot
+5.  EliminarReservaFulbot
+6.  PosiblesHorarios
+
+### ⚠️ Variables de Entorno y Seguridad
+El sistema maneja lógica de bloqueo. Si un usuario intenta abusar del bot:
+
+* Aviso 1 y 2: Advertencia.
+* Aviso 3: Último Strike.
+* Aviso 4: Bloqueo permanente (registrado en BD).
+
+#### Desarrollado con ❤️ usando n8n.
