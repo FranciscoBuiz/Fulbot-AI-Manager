@@ -2,7 +2,7 @@
 
 Este repositorio contiene un flujo de trabajo avanzado de **n8n** que implementa un agente de Inteligencia Artificial para automatizar la gestión de un complejo de canchas de fútbol vía WhatsApp.
 
-El sistema utiliza **Google Gemini** para interpretar el lenguaje natural, gestionar reservas, verificar pagos y bloquear usuarios abusivos automáticamente.
+El sistema utiliza **Groq** para interpretar el lenguaje natural, gestionar reservas, verificar pagos y bloquear usuarios abusivos automáticamente.
 
 ## ✨ Características Principales
 
@@ -17,7 +17,7 @@ El sistema utiliza **Google Gemini** para interpretar el lenguaje natural, gesti
 ## 🛠️ Stack Tecnológico
 
 * **Orquestador:** [n8n](https://n8n.io/)
-* **LLM:** Google Gemini (PaLM API)
+* **LLM:** Llama-3.3-70b-versatile
 * **Base de Datos:** PostgreSQL (Esquema `negocio`)
 * **Cache/Buffer:** Redis
 * **Mensajería:** WhatsApp (vía API Gateway, ej: Evolution API)
