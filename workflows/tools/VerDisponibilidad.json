@@ -1,0 +1,223 @@
+{
+  "name": "VerDisponibilidadFulbot",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "NUMEROCANCHA",
+              "type": "number"
+            },
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "HORARIO"
+            },
+            {
+              "name": "TIEMPO",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "95543cb8-47a3-46c4-9bee-11f1fb536008",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -336,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"disponibilidad\" : true\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1136,
+        -96
+      ],
+      "id": "a7a75e5c-dd12-4793-8ddb-9098540f5883",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtenemos los datos de entrada\nconst inputData = items[0].json;\nconst repeticiones = inputData.TIEMPO;\nconst fechaString = inputData.FECHA;     // \"08/12/2025\"\nconst horarioString = inputData.HORARIO; // \"23:00\"\n\n// 1. Desarmamos el texto para crear un objeto Fecha nativo de JS\n// Dividimos la fecha por la barra \"/\"\nconst partesFecha = fechaString.split('/'); // [\"08\", \"12\", \"2025\"]\n// Dividimos la hora por los dos puntos \":\"\nconst partesHora = horarioString.split(':'); // [\"23\", \"00\"]\n\n// Creamos la fecha base.\n// OJO: En Javascript los meses van de 0 a 11 (Enero es 0, Diciembre es 11)\n// Por eso restamos 1 al mes (partesFecha[1] - 1)\nconst fechaBase = new Date(\n    partesFecha[2],       // Año\n    partesFecha[1] - 1,   // Mes (0-indexado)\n    partesFecha[0],       // Día\n    partesHora[0],        // Horas\n    partesHora[1]         // Minutos\n);\n\nconst resultados = [];\n\n// Función auxiliar para agregar el cero a la izquierda (ej: 9 -> 09)\nconst pad = (num) => num.toString().padStart(2, '0');\n\nfor (let i = 0; i < repeticiones; i++) {\n  \n  // Clonamos la fecha base para no modificar la original\n  let nuevaFecha = new Date(fechaBase);\n  \n  // Sumamos las horas (JS maneja el cambio de día/mes/año solo)\n  nuevaFecha.setHours(fechaBase.getHours() + (i));\n\n  // Formateamos de vuelta a texto para que n8n lo lea bonito\n  const fechaFormateada = `${pad(nuevaFecha.getDate())}/${pad(nuevaFecha.getMonth() + 1)}/${nuevaFecha.getFullYear()}`;\n  const horaFormateada = `${pad(nuevaFecha.getHours())}:${pad(nuevaFecha.getMinutes())}`;\n\n  resultados.push({\n    json: {\n      ...inputData,\n      \"FECHA\": fechaFormateada,\n      \"HORARIO\": horaFormateada,\n      \"bloque_nro\": i + 1\n    }\n  });\n}\n\nreturn resultados;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -80
+      ],
+      "id": "d3edbf71-c408-4ad0-ab06-4c0b0c1c530e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fa4f29ab-82f8-4544-b276-91f0cbd5c45b",
+              "leftValue": "={{ $json }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "589e9d17-fbbc-4b0e-9acc-6b09f8470b48",
+              "leftValue": "={{ $('Loop Over Items').item.json.bloque_nro }}",
+              "rightValue": "={{ $('Loop Over Items').item.json.TIEMPO }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        16
+      ],
+      "id": "de57d2c3-3b85-490b-83ed-7555eba559a2",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        912,
+        32
+      ],
+      "id": "ab0be43d-4505-48eb-9098-e5a61c00978e",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        80,
+        -80
+      ],
+      "id": "bd2cf8c8-75d8-4029-aa2d-439e4ec510ea",
+      "name": "Loop Over Items"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "NUMEROCANCHA": 1,
+          "FECHA": "11/12/2025",
+          "HORARIO": "16:00",
+          "TIEMPO": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fdff5850-61ed-4967-a0a8-f8e28c977d53",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "F2fokid3AZgTDMFv",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}

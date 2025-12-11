@@ -1,0 +1,401 @@
+{
+  "name": "ReservarCanchaFulbot",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "TELEFONO"
+            },
+            {
+              "name": "NUMEROCANCHA",
+              "type": "number"
+            },
+            {
+              "name": "SEÑA",
+              "type": "number"
+            },
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "HORARIO"
+            },
+            {
+              "name": "TIEMPO",
+              "type": "number"
+            },
+            {
+              "name": "NOMBRE"
+            },
+            {
+              "name": "APELLIDO"
+            },
+            {
+              "name": "DNI",
+              "type": "number"
+            },
+            {
+              "name": "EMAIL"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        224,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "192f7521-2495-4dba-8e7c-ba3a74417c3f",
+              "leftValue": "={{$('Select rows from a table').item.json}}",
+              "rightValue": "[{}]",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        352
+      ],
+      "id": "6dc68f00-c5ae-4023-a5a0-367bdc15a21c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "errorMessage": "No hay disponibilidad en este horario y/o duracion"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        448
+      ],
+      "id": "aa85cde2-b9b1-4690-a05b-fb2c4b81a13c",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mercadopago.com/checkout/preferences",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"items\": [\n    {\n      \"id\": \"{{ $json.IDENTIFICADOR }}\",\n      \"title\": \"Reserva de Cancha de Futbol\",\n      \"description\": \"Reserva de Cancha de Futbol\",\n      \"category_id\": \"producto\",\n      \"quantity\": 1,\n      \"currency_id\": \"ARS\",\n      \"unit_price\": {{ $('When Executed by Another Workflow').item.json['SEÑA'] }}\n    }\n  ],\n  \"payer\": {\n    \"name\": \"{{ $('When Executed by Another Workflow').item.json.NOMBRE }}\",\n    \"surname\": \"{{ $('When Executed by Another Workflow').item.json.APELLIDO }}\",\n    \"email\": \"{{ $('When Executed by Another Workflow').item.json.EMAIL }}\",\n    \"phone\": {\n      \"area_code\": \"54\",\n      \"number\": {{ $('When Executed by Another Workflow').item.json.TELEFONO.substring(2,13) }}\n    },\n    \"identification\": {\n      \"type\": \"DNI\",\n      \"number\": \"{{ $('When Executed by Another Workflow').item.json.DNI }}\"\n    }\n  },\n  \"payment_methods\": {\n    \"excluded_payment_types\": [\n      {\n        \"id\": \"credit_card\"\n      }\n    ],\n    \"installments\": 1\n  },\n  \"external_reference\": \"{{ $json.IDENTIFICADOR }}\",\n  \"metadata\": {\n    \"chat_id\": \"{{ $('When Executed by Another Workflow').item.json.TELEFONO+'@s.whatsapp.net' }}\",\n    \"id_reserva\": \"{{ $json.IDENTIFICADOR }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        256
+      ],
+      "id": "81b66a56-33e8-4c68-9509-92c96bdf3e0f",
+      "name": "Cupones de Pago",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "tEvz93nggNRTHJqx",
+          "name": "mp-prueba"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "313efe62-054d-4d92-b311-5c42fedf707e",
+              "name": "init_point",
+              "value": "={{ $json.init_point }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        256
+      ],
+      "id": "98e2bfbc-55e3-4a38-a7df-b33d806ce2de",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "NUMEROCANCHA",
+              "value": "={{ $('When Executed by Another Workflow').item.json.NUMEROCANCHA }}"
+            },
+            {
+              "column": "HORARIO",
+              "value": "={{ $('When Executed by Another Workflow').item.json.HORARIO.split(\":\")[0].toNumber() + $('When Executed by Another Workflow').item.json.TIEMPO + \":00\" }}"
+            },
+            {
+              "column": "FECHA",
+              "value": "={{ DateTime.fromFormat($('When Executed by Another Workflow').item.json.FECHA, 'dd/MM/yyyy').toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        352
+      ],
+      "id": "8887774f-a4a9-4cfe-abb6-5f2ce613fbdd",
+      "name": "Select rows from a table",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO negocio.reservas (\n    \"TELEFONO\", \n    \"NUMEROCANCHA\", \n    \"FECHA\", \n    \"HORARIO\", \n    \"TIEMPO\", \n    \"SEÑA\", \n    \"NOMBRE\", \n    \"PRECIO\",\n    \"PAGORECIBIDO\"\n)\nSELECT \n    $1, \n    $2, \n    TO_DATE($3, 'DD/MM/YYYY'), \n    $4::TIME, \n    $5, \n    $6, \n    $7, \n    (c.\"PRECIO\" * $5),\n    'no'\nFROM negocio.canchas c\nWHERE c.\"NUMERO\" = $2\nRETURNING \"IDENTIFICADOR\", \"FALTANTE\", \"PRECIO\";",
+        "options": {
+          "queryReplacement": "={{ $('When Executed by Another Workflow').item.json.TELEFONO }}, {{ $('When Executed by Another Workflow').item.json.NUMEROCANCHA }},{{ $('When Executed by Another Workflow').item.json.FECHA }} , {{ $('When Executed by Another Workflow').item.json.HORARIO }},{{ $('When Executed by Another Workflow').item.json.TIEMPO }} , {{ $('When Executed by Another Workflow').item.json['SEÑA'] }}, {{ $('When Executed by Another Workflow').item.json.NOMBRE }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        256
+      ],
+      "id": "1852bc23-9d2d-4965-b3fa-33eff3bbd25f",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "IDENTIFICADOR",
+              "value": "={{ $json.IDENTIFICADOR }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        256
+      ],
+      "id": "d1018b72-dc3a-46cf-954a-39c24cc67e3e",
+      "name": "Select rows from a table1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fecha = $json.FECHA; // Esperado: dd/mm/yyyy\nconst horario = $json.HORARIO; // Esperado: HH:MM\n\n// Validaciones Regex\nconst fechaRegex = /^\\d{2}\\/\\d{2}\\/\\d{4}$/;\nconst horarioRegex = /^\\d{2}:00$/; // Solo horas en punto según reglas\n\nif (!fechaRegex.test(fecha) || !horarioRegex.test(horario)) {\n  throw new Error(\"Formato inválido. Fecha debe ser dd/mm/yyyy y Horario HH:00\");\n}\n\nreturn items;"
+      },
+      "name": "Validar Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        352
+      ],
+      "id": "9e6c8037-1e2b-4356-bca3-d844caabda2e",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "TELEFONO": "5491161773862",
+          "NUMEROCANCHA": 1,
+          "SEÑA": 50000,
+          "FECHA": "11/12/2025",
+          "HORARIO": "15:00",
+          "TIEMPO": 1,
+          "NOMBRE": "Carlos Francisco Buiz",
+          "APELLIDO": "Buiz",
+          "DNI": 46700373,
+          "EMAIL": "buizfrancisco@gmail.com"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Validar Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cupones de Pago": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table1": {
+      "main": [
+        [
+          {
+            "node": "Cupones de Pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Inputs": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ef67c3e0-677e-4006-84a6-b376d5c24db8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "wzAflaxlKfNwlsra",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}
