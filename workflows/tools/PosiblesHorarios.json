@@ -1,0 +1,173 @@
+{
+  "name": "PosiblesHorarios",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "NUMEROCANCHA",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        -16
+      ],
+      "id": "12ad5f15-e0d4-42d5-bb1b-eb3410b667ba",
+      "name": "Activación Externa"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "NUMEROCANCHA",
+              "value": "={{ $json.NUMEROCANCHA }}"
+            },
+            {
+              "column": "FECHA",
+              "value": "={{ DateTime.fromFormat($json.FECHA, 'dd/MM/yyyy').toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "639056da-6c52-453b-ac75-c60bc020c86a",
+      "name": "Reservas para X dia en X cancha",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- CONFIGURACIÓN ---\nconst HORA_APERTURA = 9;\nconst HORA_CIERRE = 23;\n// --------------------\n\nconst items = $input.all();\nconst reservas = [];\n\n// 1. Procesar input\nif (items.length > 0 && items[0].json.HORARIO) {\n  for (const item of items) {\n    const json = item.json;\n    const parts = json.HORARIO.split(':');\n    const start = parseInt(parts[0], 10) + (parts[1] ? parseInt(parts[1], 10)/60 : 0);\n    const duration = parseFloat(json.TIEMPO || 0);\n    reservas.push({ start, end: start + duration });\n  }\n}\n\n// 2. Ordenar\nreservas.sort((a, b) => a.start - b.start);\n\n// 3. Calcular huecos (guardamos strings en un array simple)\nconst listaHorarios = []; // Aquí guardaremos los textos\nlet puntero = HORA_APERTURA;\n\nfor (const res of reservas) {\n  if (res.start > puntero) {\n    listaHorarios.push(`${formato(puntero)} - ${formato(res.start)}`);\n  }\n  puntero = Math.max(puntero, res.end);\n}\n\nif (puntero < HORA_CIERRE) {\n  listaHorarios.push(`${formato(puntero)} - ${formato(HORA_CIERRE)}`);\n}\n\n// Helper\nfunction formato(decimal) {\n  const h = Math.floor(decimal);\n  const m = Math.round((decimal - h) * 60);\n  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;\n}\n\n// --- RETORNO MODIFICADO ---\n// Devolvemos UN solo item con un array de horarios dentro\nreturn [{\n  json: {\n    franjas_disponibles: listaHorarios \n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "c0905322-ae18-4d7f-84ca-e5f123c32924",
+      "name": "Franjas horarias disponibles"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a881a818-8531-47f0-84d7-114a66dd0501",
+              "name": "mensaje_a_cliente",
+              "value": "=📅 *HORARIOS DISPONIBLES:*  {{ $json.franjas_disponibles.map(f => '⏰ ' + f).join('\\n') }}  👇 *Respondé con el que prefieras*",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        -16
+      ],
+      "id": "7b1b9b75-2039-4ab6-9436-8914ff69b929",
+      "name": "Preparación del mensaje"
+    }
+  ],
+  "pinData": {
+    "Activación Externa": [
+      {
+        "json": {
+          "FECHA": "14/12/2025",
+          "NUMEROCANCHA": 1
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Activación Externa": {
+      "main": [
+        [
+          {
+            "node": "Reservas para X dia en X cancha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reservas para X dia en X cancha": {
+      "main": [
+        [
+          {
+            "node": "Franjas horarias disponibles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Franjas horarias disponibles": {
+      "main": [
+        [
+          {
+            "node": "Preparación del mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7ebe986d-6192-46e6-84f9-43a507bccee4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "5V6I2THeKfU2YSui",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}
