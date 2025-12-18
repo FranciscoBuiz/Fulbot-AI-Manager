@@ -1,0 +1,477 @@
+{
+  "name": "EliminarReservaFulbot",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/AgenteIATest",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=3DFD1E6E75D2-419C-9FFC-918595CA06CE"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "5491122824060@s.whatsapp.net"
+            },
+            {
+              "name": "text",
+              "value": "=❌ *CANCELACIÓN:* {{ $('Recupero Reserva').item.json.NOMBRE }}\n💸 *Devolución:* ${{ $('Recupero Reserva').item.json['SEÑA'] }}\n🆔 *Reserva N°:* {{ $('Recupero Reserva').item.json.IDENTIFICADOR }}\n📱 *Contacto:* +{{ $('Recupero Reserva').item.json.TELEFONO }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -160
+      ],
+      "id": "4f8be70d-e41f-4ec5-b20e-a1686abed9d1",
+      "name": "Enviar Mensaje De Clientes esperando respuesta2",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "TELEFONO"
+            },
+            {
+              "name": "NOMBRE"
+            },
+            {
+              "name": "IDENTIFICADOR"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        32
+      ],
+      "id": "148da831-c57a-4f7f-b920-851090c24e78",
+      "name": "Activación Externa"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "TELEFONO",
+              "value": "={{ $json.TELEFONO }}"
+            },
+            {
+              "column": "NOMBRE",
+              "value": "={{ $json.NOMBRE }}"
+            },
+            {
+              "column": "IDENTIFICADOR",
+              "value": "={{ $json.IDENTIFICADOR }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        32
+      ],
+      "id": "21e6b685-ec73-48f5-9e1e-660d6c050019",
+      "name": "Recupero Reserva",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f680c76b-d4c6-44a3-aae0-81082ee20d11",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "be348950-684a-4c24-997c-2b8e59d9e4fb",
+              "leftValue": "={{ $json.PAGORECIBIDO }}",
+              "rightValue": "si",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        32
+      ],
+      "id": "858fd8d6-ddfd-4260-923d-75dd9bb9916f",
+      "name": "La encontre?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86bc1512-540c-453d-9f48-f9d38f6ce68c",
+              "name": "error_message",
+              "value": "❌ *HUBO UN ERROR* No pudimos procesar la cancelación automáticamente. 👮 *Soporte:* Intente de nuevo. Si el error persiste, use el comando */humano* para que alguien se comunique con usted.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        128
+      ],
+      "id": "4b350ef7-1d29-4c57-a7b4-7175cc10faec",
+      "name": "Mensaje de que no"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "53f1d89d-9be6-4e32-bded-d8116022e10b",
+              "leftValue": "={{ $json.FECHA.toDateTime().plus($json.HORARIO.split(\":\")[0].toNumber(),\"hours\").diffTo($now, 'days') }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -64
+      ],
+      "id": "ea9bb790-bfaa-4679-9a07-6db773ad04cb",
+      "name": "Antes de las 24h?"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "deleteCommand": "delete",
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        -160
+      ],
+      "id": "0b2123b7-d396-4155-b79c-b605ae848ac3",
+      "name": "Eliminacion",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "deleteCommand": "delete",
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        896,
+        32
+      ],
+      "id": "84690c03-06bf-4149-99c9-db1d8831889d",
+      "name": "Eliminacion1",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8dd2948b-5034-4c95-9fd4-2de5a5a98d9d",
+              "name": "mensaje_a_cliente",
+              "value": "=☑️ *RESERVA CANCELADA*\nHemos liberado el turno correctamente.\n⚠️ *Importante:* Al cancelar con menos de 24hs de antelación, la seña no será reintegrada.\n⚽ *¡Esperamos verte en una próxima oportunidad!*",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        32
+      ],
+      "id": "9183f58b-c13f-4bf2-80bd-69393c4b795b",
+      "name": "Mensaje de sin devolución"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4db7c9de-624c-47a0-a702-5430bbbe976c",
+              "name": "mensaje_a_cliente",
+              "value": "=✅ *CANCELACIÓN EXITOSA*\nTu reserva ha sido dada de baja correctamente.\n💸 *Reintegro:* La seña será devuelta a la brevedad.\n👋 *¡Gracias por avisarnos con tiempo!*",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        -160
+      ],
+      "id": "9a69532f-d694-4c14-b9d7-5776e1512f8d",
+      "name": "Mensaje de con devolución"
+    }
+  ],
+  "pinData": {
+    "Activación Externa": [
+      {
+        "json": {
+          "TELEFONO": "5491161773862",
+          "NOMBRE": "Carlos Francisco Buiz",
+          "IDENTIFICADOR": "00000004"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Enviar Mensaje De Clientes esperando respuesta2": {
+      "main": [
+        [
+          {
+            "node": "Mensaje de con devolución",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activación Externa": {
+      "main": [
+        [
+          {
+            "node": "Recupero Reserva",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recupero Reserva": {
+      "main": [
+        [
+          {
+            "node": "La encontre?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "La encontre?": {
+      "main": [
+        [
+          {
+            "node": "Antes de las 24h?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensaje de que no",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Antes de las 24h?": {
+      "main": [
+        [
+          {
+            "node": "Eliminacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Eliminacion1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eliminacion": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje De Clientes esperando respuesta2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eliminacion1": {
+      "main": [
+        [
+          {
+            "node": "Mensaje de sin devolución",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "3f7101b1-348b-419e-9a90-a17b48bea414",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "gpitab2t9cMW4w1i",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}

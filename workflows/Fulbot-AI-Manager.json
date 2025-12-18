@@ -1,0 +1,3756 @@
+{
+  "name": "Fulbot-AI-Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "fieldToSplitOut": "message",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        224,
+        432
+      ],
+      "id": "81828453-63e4-458c-9423-a6dce201d9b7",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Json Parse').item.json.content }}",
+        "guardrails": {
+          "jailbreak": {
+            "value": {
+              "threshold": 0.7
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.guardrails",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        608
+      ],
+      "id": "c6d58f4e-143d-45db-b239-dcc60881ddee",
+      "name": "Guardrails1"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "qL7ccKjS05lysiQM",
+          "mode": "list",
+          "cachedResultName": "EstadoConersasiones",
+          "cachedResultUrl": "/projects/lHzPgAZHrd1ngKym/datatables/qL7ccKjS05lysiQM"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "CHAT_ID",
+              "keyValue": "={{ $json.chat_id }}"
+            },
+            {
+              "keyName": "FECHA",
+              "keyValue": "={{ $('RecuperarEstado').item.json.FECHA }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "STATUS": "bot",
+            "CHAT_ID": "={{ $json.chat_id }}",
+            "FECHA": "={{ $json.timeStamp }}",
+            "AVISOS": "={{ $('RecuperarEstado').item.json.AVISOS }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "CHAT_ID",
+              "displayName": "CHAT_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AVISOS",
+              "displayName": "AVISOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        896,
+        608
+      ],
+      "id": "42ddb029-77df-49cf-89fe-e836a52e5aa4",
+      "name": "Bot"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "qL7ccKjS05lysiQM",
+          "mode": "list",
+          "cachedResultName": "EstadoConersasiones",
+          "cachedResultUrl": "/projects/lHzPgAZHrd1ngKym/datatables/qL7ccKjS05lysiQM"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "CHAT_ID",
+              "keyValue": "={{ $json.chat_id }}"
+            },
+            {
+              "keyName": "FECHA",
+              "keyValue": "={{ $('RecuperarEstado').item.json.FECHA }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "STATUS": "humano",
+            "CHAT_ID": "={{ $json.chat_id }}",
+            "FECHA": "={{ $json.timeStamp }}",
+            "AVISOS": "={{ $('RecuperarEstado').item.json.AVISOS }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "CHAT_ID",
+              "displayName": "CHAT_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AVISOS",
+              "displayName": "AVISOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        896,
+        208
+      ],
+      "id": "d823e971-fe4d-4ecc-a461-85059784804e",
+      "name": "Humano"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Json Parse').item.json.chat_id }}",
+        "contextWindowLength": 2
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1824,
+        576
+      ],
+      "id": "32a2ee57-8b8f-42f2-aae2-4a50117ee249",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "### Funcionalidad\nGestiona la reserva de una cancha validando formato y disponibilidad.\n* **Si está libre:** Registra la reserva en la base de datos, genera un link de pago de Mercado Pago (expira en 15 min) y devuelve el mensaje de confirmación.\n* **Si está ocupada:** Busca horarios alternativos mediante un sub-flujo y devuelve un mensaje con las opciones disponibles.\n\n### Parámetros Requeridos\n* **Reserva:** `NUMEROCANCHA`, `FECHA` (dd/mm/yyyy), `HORARIO` (HH:00), `TIEMPO`, `SEÑA`.\n* **Cliente:** `TELEFONO`, `NOMBRE`, `APELLIDO`, `DNI`, `EMAIL`.",
+        "workflowId": {
+          "__rl": true,
+          "value": "wzAflaxlKfNwlsra",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/wzAflaxlKfNwlsra",
+          "cachedResultName": "ReservarCanchaFulbot"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SEÑA": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('SE_A', `Numero entero sin decimales mayor igual a 2000.`, 'number') }}",
+            "TELEFONO": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('TELEFONO', `String de numero entero sin decimales de entre 13-14 dígitos.`, 'string') }}",
+            "FECHA": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('FECHA', `String con el siguiente formato: dd/mm/aaaa.`, 'string') }}",
+            "HORARIO": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('HORARIO', `String con el siguiente formato: hh:mm (siempre horarios en punto).`, 'string') }}",
+            "TIEMPO": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('TIEMPO', `Numero entero sin decimales.`, 'number') }}",
+            "NOMBRE": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('NOMBRE', `String con un único nombre o primer y segundo nombre.`, 'string') }}",
+            "DNI": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DNI', `Numero entero sin decimales de mínimo 7 dígitos.`, 'number') }}",
+            "APELLIDO": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('APELLIDO', `String con un único nombre o primer y segundo apellido.`, 'string') }}",
+            "EMAIL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('EMAIL', `String de dirección de correo electrónico (debe tener una terminación valida, ej:  juanperez@gmail.com)`, 'string') }}",
+            "FUTBOL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('FUTBOL', `Numero entero sin decimales de entre 5 a 11.`, 'number') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "TELEFONO",
+              "displayName": "TELEFONO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "FUTBOL",
+              "displayName": "FUTBOL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "SEÑA",
+              "displayName": "SEÑA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "HORARIO",
+              "displayName": "HORARIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "TIEMPO",
+              "displayName": "TIEMPO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "NOMBRE",
+              "displayName": "NOMBRE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "APELLIDO",
+              "displayName": "APELLIDO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "DNI",
+              "displayName": "DNI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "EMAIL",
+              "displayName": "EMAIL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1952,
+        576
+      ],
+      "id": "6d5e8ba9-dfb3-4695-a85e-f08e919a660a",
+      "name": "ReservarCanchaFulbot"
+    },
+    {
+      "parameters": {
+        "description": "### Funcionalidad\nRecupera el historial de reservas de un cliente consultando la base de datos. Filtra por nombre y teléfono, formatea la lista de fechas y horarios y devuelve un mensaje de texto único con el detalle de las reservas activas.\n\n### Parámetros Requeridos\n* **Cliente:** `TELEFONO`, `NOMBRE`.",
+        "workflowId": {
+          "__rl": true,
+          "value": "d1vdXLwfHeiJxT15",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/d1vdXLwfHeiJxT15",
+          "cachedResultName": "RecuperarReservasFulbot"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TELEFONO": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('TELEFONO', `String de numero entero sin decimales de entre 13-14 dígitos.`, 'string') }}",
+            "NOMBRE": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('NOMBRE', `String con el nombre completo del cliente (Nombre/s apellido/s).`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "TELEFONO",
+              "displayName": "TELEFONO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "NOMBRE",
+              "displayName": "NOMBRE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        576
+      ],
+      "id": "8cddc1de-4ba9-4e5a-9328-e5e8ad97258a",
+      "name": "RecuperarReservasFulbot"
+    },
+    {
+      "parameters": {
+        "description": "### Funcionalidad\nGestiona la eliminación de una reserva específica validando su existencia y el tiempo de anticipación.\n* **Más de 24hs antes:** Elimina la reserva de la base de datos, envía una notificación interna para procesar la devolución del dinero y confirma al cliente el reintegro de la seña.\n* **Menos de 24hs antes:** Elimina la reserva, pero informa al cliente que la seña no será reintegrada por la falta de antelación.\n* **Excepción:** Si la reserva no existe o ya figura como totalmente pagada (\"si\"), deriva el caso a soporte humano.\n\n### Parámetros Requeridos\n* **Reserva:** `IDENTIFICADOR` .\n* **Cliente:** `TELEFONO`, `NOMBRE`.",
+        "workflowId": {
+          "__rl": true,
+          "value": "gpitab2t9cMW4w1i",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/gpitab2t9cMW4w1i",
+          "cachedResultName": "EliminarReservaFulbot"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TELEFONO": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('TELEFONO', `String de numero entero sin decimales de entre 13-14 dígitos.`, 'string') }}",
+            "NOMBRE": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('NOMBRE', `String con el nombre completo del cliente (Nombre/s apellido/s).`, 'string') }}",
+            "IDENTIFICADOR": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('IDENTIFICADOR', `String de números de 8 dígitos (Ej. \"00000004\")`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "TELEFONO",
+              "displayName": "TELEFONO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "NOMBRE",
+              "displayName": "NOMBRE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "IDENTIFICADOR",
+              "displayName": "IDENTIFICADOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2208,
+        576
+      ],
+      "id": "84702bfb-9fa4-4815-8d93-847c5d736abd",
+      "name": "EliminarReserva"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "canchas",
+          "mode": "list",
+          "cachedResultName": "canchas"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2336,
+        576
+      ],
+      "id": "209578ef-fd50-4aab-8403-b197599ce3c5",
+      "name": "DatosDeCanchas",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        576
+      ],
+      "id": "18fd5c76-e237-4461-a989-2ead1887e9cd",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CmByTfTNvUkx6aOO",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "llama-3.3-70b-versatile",
+          "mode": "list",
+          "cachedResultName": "llama-3.3-70b-versatile"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        832
+      ],
+      "id": "22595b7e-44e3-47dc-a1fc-cd6fd29200ef",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "s7oLqE8EjfaGq0Ry",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "### Funcionalidad\nCalcula los horarios disponibles en una cancha para una fecha específica.\n* Consulta las reservas existentes en la base de datos.\n* Procesa los tiempos ocupados contra el horario de atención (09:00 a 23:00) para identificar los intervalos libres.\n* Devuelve un mensaje de texto formateado con la lista de franjas horarias disponibles.\n\n### Parámetros Requeridos\n* `FECHA` (dd/mm/yyyy), `NUMEROCANCHA`.",
+        "workflowId": {
+          "__rl": true,
+          "value": "5V6I2THeKfU2YSui",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5V6I2THeKfU2YSui",
+          "cachedResultName": "PosiblesHorarios"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "FECHA": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('FECHA', `String con el siguiente formato: dd/mm/aaaa.`, 'string') }}",
+            "NUMEROCANCHA": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('NUMEROCANCHA', `Numero entero sin decimales.`, 'number') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "NUMEROCANCHA",
+              "displayName": "NUMEROCANCHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2464,
+        576
+      ],
+      "id": "6eb97ccd-1a46-4b05-8971-b8b5d58cf62b",
+      "name": "PosiblesHorarios"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1792,
+        -912
+      ],
+      "id": "e78bf841-a235-490d-9cef-8ccfc73930c2",
+      "name": "Activador de limpieza"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE negocio.reservas\nSET \"ESTADO\" = 'CANCELADA'\nWHERE \"ESTADO\" = 'ESPERA';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1568,
+        -912
+      ],
+      "id": "22eaa10b-4b21-46d3-8843-75f10339f583",
+      "name": "ESPERA a CANCELADA",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pago-mp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1792,
+        -688
+      ],
+      "id": "360aa8d0-2889-47cc-8694-8d18206ad097",
+      "name": "MP_Webhook",
+      "webhookId": "625739aa-f68d-41da-ae72-87226e680bdf"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a0c4f1c2-cc2b-4e35-a1c9-9183a3d4a177",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "payment",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1344,
+        -688
+      ],
+      "id": "3c589bfb-2d6f-47e0-a72b-afe589944e36",
+      "name": "body.type==\"payment\""
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mercadopago.com/v1/payments/{{ $('MP_Webhook').item.json.query['data.id'] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1120,
+        -688
+      ],
+      "id": "4d466bb1-fd21-4100-8a9f-506623c4f81e",
+      "name": "Recupero payment",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "tEvz93nggNRTHJqx",
+          "name": "mp-prueba"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "840cf658-4e64-4fa9-bb6c-78cf9abc9833",
+              "leftValue": "={{ $json.status_detail }}",
+              "rightValue": "accredited",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "761d0c39-7f40-439f-9c69-8eb432f28a6e",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        -688
+      ],
+      "id": "f7d59a2e-a232-491c-a988-0def445486f0",
+      "name": "Esta Aprobado y Acreditado?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "IDENTIFICADOR": "={{ $json.additional_info.items[0].id }}",
+            "PAGORECIBIDO": "si",
+            "ESTADO": "CONFIRMADA"
+          },
+          "matchingColumns": [
+            "IDENTIFICADOR"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "TELEFONO",
+              "displayName": "TELEFONO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NUMEROCANCHA",
+              "displayName": "NUMEROCANCHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PRECIO",
+              "displayName": "PRECIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "SEÑA",
+              "displayName": "SEÑA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "FALTANTE",
+              "displayName": "FALTANTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "HORARIO",
+              "displayName": "HORARIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "time",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "TIEMPO",
+              "displayName": "TIEMPO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NOMBRE",
+              "displayName": "NOMBRE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PAGORECIBIDO",
+              "displayName": "PAGORECIBIDO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IDENTIFICADOR",
+              "displayName": "IDENTIFICADOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ESTADO",
+              "displayName": "ESTADO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CREATED_AT",
+              "displayName": "CREATED_AT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -672,
+        -688
+      ],
+      "id": "a3df0558-0db5-4bbf-832e-26408f3bcd6c",
+      "name": "Pago Recibido y Reserva Confirmada",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "IDENTIFICADOR",
+              "value": "={{ $json.IDENTIFICADOR }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -448,
+        -688
+      ],
+      "id": "65361bda-dd86-4476-a699-a2c7ef93c629",
+      "name": "Recupero Reserva Completa",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputFecha = $input.first().json.FECHA;\nconst inputHora = $input.first().json.HORARIO;\n\nconst [anio, mes, dia] = inputFecha.split('T')[0].split('-');\nconst fechaFormateada = `${dia}/${mes}/${anio.slice(-2)}`;\nconst horaFormateada = inputHora.slice(0, 5);\n\nconst fechaObj = new Date(inputFecha);\nconst nombreDia = fechaObj.toLocaleDateString('es-ES', { weekday: 'long', timeZone: 'UTC' });\nconst diaSemana = nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1);\n\nreturn {\n  json: {\n    fecha: fechaFormateada,\n    hora: horaFormateada,\n    dia: diaSemana\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -688
+      ],
+      "id": "2144ee70-8aa6-414c-b3ae-9e5dc927c91b",
+      "name": "Preparacion del Mensaje"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/AgenteIATest",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "secret_api_key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Recupero Reserva Completa').item.json.TELEFONO+\"@s.whatsapp.net\"}}"
+            },
+            {
+              "name": "text",
+              "value": "={{ \"Hola \"+$('Recupero Reserva Completa').item.json.NOMBRE+\" 👋, te confirmo el pago de la fecha.\\n✅ Turno fijo: \"}}{{ $json.dia +\" \" }}{{$json.fecha+\" a las \"}}{{ $json.hora }}{{\"\\nYa está todo anotado en la planilla. ¡Nos vemos en la cancha!\" }}"
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -688
+      ],
+      "id": "4d0c1653-77ef-4b8b-a954-a73a87cb3806",
+      "name": "Enviar Mensaje De Pago Recibido",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 1. EXTENSIONES (Nivel Base de Datos)\n-- Necesaria para que funcione la restricción de exclusión con enteros (NUMEROCANCHA)\nCREATE EXTENSION IF NOT EXISTS btree_gist;\n\n-- 2. REINICIAR ESQUEMA\nDROP SCHEMA IF EXISTS negocio CASCADE;\nCREATE SCHEMA negocio;\n\n-- 3. TABLA CANCHAS (Debe crearse primero porque 'reservas' depende de ella)\nCREATE TABLE IF NOT EXISTS negocio.canchas (\n    \"NUMERO\" SERIAL PRIMARY KEY,\n    \"FUTBOL\" INTEGER,\n    \"PRECIO\" NUMERIC(15, 2),\n    \"ESTADO\" VARCHAR(10)\n);\n\n-- 4. TABLA RESERVAS (Con la protección anti-solapamiento incluida)\nCREATE TABLE IF NOT EXISTS negocio.reservas (\n    id SERIAL PRIMARY KEY,\n    \"TELEFONO\" VARCHAR(50),\n    \"NUMEROCANCHA\" INTEGER REFERENCES negocio.canchas(\"NUMERO\"),\n    \"PRECIO\" NUMERIC(15, 2),\n    \"SEÑA\" NUMERIC(15, 2),\n    \"FALTANTE\" NUMERIC(15, 2) GENERATED ALWAYS AS (\"PRECIO\" - \"SEÑA\") STORED, \n    \"FECHA\" DATE,   \n    \"HORARIO\" TIME, \n    \"TIEMPO\" NUMERIC(5, 1),\n    \"NOMBRE\" VARCHAR(255),\n    \"PAGORECIBIDO\" VARCHAR(10) DEFAULT 'no',\n    \"IDENTIFICADOR\" VARCHAR(8) GENERATED ALWAYS AS (LPAD(id::TEXT, 8, '0')) STORED UNIQUE,\n    \"ESTADO\" VARCHAR(20) DEFAULT 'ESPERA',\n    CONSTRAINT evitar_superposicion_canchas\n    EXCLUDE USING gist (\n        \"NUMEROCANCHA\" WITH =,\n        tsrange(\n            (\"FECHA\" + \"HORARIO\"), \n            (\"FECHA\" + \"HORARIO\" + (\"TIEMPO\" * interval '1 hour')), \n            '[)'\n        ) WITH &&\n    )\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1792,
+        -464
+      ],
+      "id": "128dd0bf-207b-4a00-81c9-700f4c570461",
+      "name": "Creación de la DB",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Agrega la columna de fecha de creación automática\nALTER TABLE negocio.reservas \nADD COLUMN \"CREATED_AT\" TIMESTAMP DEFAULT NOW();\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1568,
+        -464
+      ],
+      "id": "f6fd969c-4b10-4b00-880b-9a9eb2bc3075",
+      "name": "Sumo una tabla",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "evolution-api",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1792,
+        624
+      ],
+      "id": "28dc17ae-9190-4086-8319-cf37b690b1c2",
+      "name": "Wsp_Webhook",
+      "webhookId": "bda40859-9061-4f50-9fc1-8f15a0c820ac"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "qL7ccKjS05lysiQM",
+          "mode": "list",
+          "cachedResultName": "EstadoConersasiones",
+          "cachedResultUrl": "/projects/lHzPgAZHrd1ngKym/datatables/qL7ccKjS05lysiQM"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "CHAT_ID",
+              "keyValue": "={{ $json.body.data.key.remoteJid }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        624
+      ],
+      "id": "9e37d8a6-1fff-4143-9828-91bdeb79ba81",
+      "name": "RecuperarEstado",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "708c0277-6364-4b5f-a451-9bf6dad81fb9",
+                    "leftValue": "={{ $json.CHAT_ID }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sin registrar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.AVISOS }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    },
+                    "id": "5ce1955d-80ce-46aa-8d82-37513e01c1ce"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Registrado avisos <=  3"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0c1861ad-c6e2-40b9-bf49-45968177f72e",
+                    "leftValue": "={{ $json.AVISOS }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Registrado avisos >=  4"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1344,
+        608
+      ],
+      "id": "09833721-d1d1-4502-a810-4dccbf96bfe2",
+      "name": "Registrado? Con mas de 3 avisos?"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "qL7ccKjS05lysiQM",
+          "mode": "list",
+          "cachedResultName": "EstadoConersasiones",
+          "cachedResultUrl": "/projects/lHzPgAZHrd1ngKym/datatables/qL7ccKjS05lysiQM"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AVISOS": 0,
+            "CHAT_ID": "={{ $('Wsp_Webhook').item.json.body.data.key.remoteJid }}",
+            "FECHA": "={{ $('Wsp_Webhook').item.json.body.date_time }}",
+            "STATUS": "bot"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "CHAT_ID",
+              "displayName": "CHAT_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AVISOS",
+              "displayName": "AVISOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        480
+      ],
+      "id": "ca877114-8cd7-4639-840d-2f0f1b141108",
+      "name": "Registro usuario"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        768
+      ],
+      "id": "abe8f08e-7387-4ad6-a610-751d4679e93a",
+      "name": "Mas de 3 avisos, no contesto"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/{{ $('Wsp_Webhook').item.json.body.instance }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "⏳ AGUARDÁ UN INSTANTE: Un operador humano se pondrá en contacto con vos a la brevedad. Para retomar la atención automática, escribí /bot"
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1184,
+        208
+      ],
+      "id": "8e5e6912-f43c-4ffa-994b-81126b60d832",
+      "name": "Enviar Mensaje De Asistencia Humana",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.content }}",
+                    "rightValue": "/humano",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "483b5474-5eb1-484a-8f3c-482faf6d0947"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/humano"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fcc2aaff-6191-45f8-903b-051315e57942",
+                    "leftValue": "={{ $json.STATUS }}",
+                    "rightValue": "bot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "estadoBot"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "09881273-9290-4723-a347-5129c0611772",
+                    "leftValue": "={{ $json.content }}",
+                    "rightValue": "/bot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/bot"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ff7067ec-9b39-4314-bdae-f98e6d652137",
+                    "leftValue": "={{ $json.STATUS }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sin estado"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        672,
+        400
+      ],
+      "id": "24750e54-9b69-49eb-835b-627df9ccd6b5",
+      "name": "Necesidad de Asistencia Humana"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=\n {{ JSON.parse($json.message) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        432
+      ],
+      "id": "a9b5f90b-503c-42cc-8175-de895a5a5ddb",
+      "name": "Json Parse"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "db6d611a-ef12-4ec1-90bc-5262111b81d2",
+              "name": "instance.url_server",
+              "value": "={{ $('Wsp_Webhook').item.json.body.server_url }}",
+              "type": "string"
+            },
+            {
+              "id": "feb764aa-a509-4e21-a356-b973cf243c50",
+              "name": "instance.instance_name",
+              "value": "={{ $('Wsp_Webhook').item.json.body.instance }}",
+              "type": "string"
+            },
+            {
+              "id": "7582d153-11bd-42bb-8c11-6a01edf0a8a6",
+              "name": "instance.apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}",
+              "type": "string"
+            },
+            {
+              "id": "b3231fd8-f66d-4f0c-917a-0b2b97622139",
+              "name": "message.chat_id",
+              "value": "={{ $('Wsp_Webhook').item.json.body.data.key.remoteJid }}",
+              "type": "string"
+            },
+            {
+              "id": "9a060b6d-2330-49d1-a35d-dade49c98ccf",
+              "name": "conversation",
+              "value": "={{ $('Wsp_Webhook').item.json.body.data.message.conversation }}",
+              "type": "string"
+            },
+            {
+              "id": "c7f45ec9-ceed-4189-bf5a-eee1f179bce4",
+              "name": "numero_de_telefono",
+              "value": "={{ $('Wsp_Webhook').item.json.body.data.key.remoteJid.split(\"@\")[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "19a1d3e6-2c89-4b72-867c-ed3a1c294b48",
+              "name": "message.message_id",
+              "value": "={{ $('Wsp_Webhook').item.json.body.data.key.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a95bd21d-c4ec-4337-a41d-6cc8b8668c6f",
+              "name": "message.timeStamp",
+              "value": "={{ $('Wsp_Webhook').item.json.body.date_time.toDateTime().toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "26053d17-83ae-439a-b8f4-3aef9b2fa317",
+              "name": "message.content_type",
+              "value": "={{ $('Wsp_Webhook').item.json.body.data.message.conversation ? 'text': '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3ed7e038-881e-4b24-9173-bdd645134b33",
+              "name": "message.content",
+              "value": "={{ $('Wsp_Webhook').item.json.body.data.message.conversation || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "70cf1b99-fa64-4243-9761-564a91936de8",
+              "name": "message.STATUS",
+              "value": "={{ $('RecuperarEstado').item.json.STATUS || 'bot' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": "={{ false }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -896,
+        560
+      ],
+      "id": "87ab5551-1544-4381-af49-2e0cff697966",
+      "name": "Normalizacion"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $json.message.chat_id }}",
+        "messageData": "={{ JSON.stringify($json.message) }}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        560
+      ],
+      "id": "1aab6201-8e95-40cb-a63c-1cb65daf9d46",
+      "name": "Load Buffer",
+      "credentials": {
+        "redis": {
+          "id": "Jw3VPFhWwxeJXIk2",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "message",
+        "key": "={{ $json.message.chat_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        560
+      ],
+      "id": "7ebad08f-07ac-4d0a-b617-0ac180ddeee2",
+      "name": "Get messages",
+      "credentials": {
+        "redis": {
+          "id": "Jw3VPFhWwxeJXIk2",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.message.last()).message_id }}",
+                    "rightValue": "={{ $('Normalizacion').item.json.message.message_id }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    },
+                    "id": "02d066d1-cedc-469e-994e-707ec9a70d0c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No hacer nada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "da8cf820-9e02-4382-9a55-52794d91bd61",
+                    "leftValue": "={{ JSON.parse($json.message.last()).timeStamp }}",
+                    "rightValue": "={{ $now.minus(10,'seconds') }}",
+                    "operator": {
+                      "type": "dateTime",
+                      "operation": "before"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Seguir"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Esperar"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -224,
+        448
+      ],
+      "id": "825b8ef9-b016-4f84-b5a2-a0a79ccd5b02",
+      "name": "Switch"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        656
+      ],
+      "id": "cad83fd3-3fa5-4d86-b5ae-256d451965a8",
+      "name": "Wait",
+      "webhookId": "ccb2865c-6da5-4874-af3d-5a96159d750f"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Normalizacion').item.json.message.chat_id }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        0,
+        432
+      ],
+      "id": "e85ab1d8-a94e-4f09-b070-50d31ea781db",
+      "name": "Delete Buffer",
+      "credentials": {
+        "redis": {
+          "id": "Jw3VPFhWwxeJXIk2",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/{{ $('Wsp_Webhook').item.json.body.instance }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "=5491122824060@s.whatsapp.net"
+            },
+            {
+              "name": "text",
+              "value": "=👮 *SOPORTE:* +{{ $('Normalizacion').item.json.numero_de_telefono }} necesita asisitencia."
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1472,
+        208
+      ],
+      "id": "5666fd4e-6e9e-4bb3-a456-e099c1135208",
+      "name": "Enviar Mensaje De Asistencia al numero propio",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener fecha actual\nconst hoy = new Date();\nconst diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];\n\n// Formatear fecha de hoy\nconst dia = String(hoy.getDate()).padStart(2, '0');\nconst mes = String(hoy.getMonth() + 1).padStart(2, '0');\nconst anio = hoy.getFullYear();\n\nlet contexto = `REFERENCIA TEMPORAL:\\n- HOY es ${diasSemana[hoy.getDay()]} ${dia}/${mes}/${anio}.\\n`;\n\n// Calcular los próximos 7 días para referencia futura\ncontexto += \"REFERENCIA FUTURA (Úsala si el usuario dice 'el próximo lunes', etc):\\n\";\n\nfor (let i = 1; i <= 7; i++) {\n  const futuro = new Date(hoy);\n  futuro.setDate(hoy.getDate() + i);\n  \n  const fDia = String(futuro.getDate()).padStart(2, '0');\n  const fMes = String(futuro.getMonth() + 1).padStart(2, '0');\n  const fAnio = futuro.getFullYear();\n  \n  contexto += `- El próximo ${diasSemana[futuro.getDay()]} cae ${fDia}/${fMes}/${fAnio}.\\n`;\n}\n\n// Retornamos el contexto fusionado con los datos existentes\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      contexto_temporal: contexto\n    }\n  }\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        464
+      ],
+      "id": "389f99be-5d90-4162-b98e-69036e951a92",
+      "name": "Contextualizador temporal"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        0,
+        240
+      ],
+      "id": "d4f5e445-0a77-450f-865d-dbe27684c826",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=un cliente te escribio:\nuser_name: {{ $('Wsp_Webhook').item.json.body.data.key.remoteJid }}\nmessage:{{ $('Wsp_Webhook').item.json.body.data.message.conversation }}\nphone_number: {{ $('Normalizacion').item.json.numero_de_telefono }}\ntime: {{ $now }}\ndate_context: {{ $json.contexto_temporal }}",
+        "options": {
+          "systemMessage": "=ROL: Asistente de \"Fulbot\". Tu objetivo: gestionar reservas y cancelaciones de canchas de fútbol de forma rápida y directa.\n\nDIRECTIVAS CRÍTICAS:\n\nOutput Directo: Si una herramienta devuelve un texto formateado (mensaje_a_cliente, franjas_disponibles, etc.), responde ÚNICAMENTE ese texto. Sin saludos ni extras.\n\nDatos Preexistentes: Ya conoces el TELEFONO. NUNCA lo solicites.\n\nFormato: Usa emojis para categorías y negritas para datos clave.\n\nFLUJOS DE TRABAJO:\n\n1. RESERVAS:\n\nValidación: Solo horas en punto (HH:00).\n\nFaltan datos: Pide TODO en un solo mensaje:\n\n⚽ PARTIDO: Tipo (F5/F7), Fecha (dd/mm), Hora (HH:00) y Duración. \n👤 TITULAR: Nombre, Apellido, DNI y Email. \n💰 PAGO: Seña (mín. $2000) o \"Pago Total\".\n📝 *IMPORTANTE:* Por favor, envié *todos los datos en un solo mensaje, escribiendo cada dato uno debajo del otro*.\n\nLógica de Pago: Si el usuario dice \"Pago Total\", usa SEÑA = PRECIO_BASE * TIEMPO.\n\nIndisponibilidad: Si la cancha está ocupada, usa la herramienta PosiblesHorarios y entrega la respuesta recibida.\n\nEjecución: Usa ReservarCanchaFulbot solo con datos completos.\n\n2. CANCELACIONES:\n\nSolicita: Nombre, Apellido, Fecha y Hora.\n\nEjecuta RecuperarReservasFulbot.\n\nVarias: Lista y pregunta cuál cancelar.\n\nUna: Pide confirmación explícita (Fecha/Hora).\n\nNinguna: Informa error y ofrece /humano.\n\nTras confirmación, ejecuta EliminarReserva.\n\n3. CONSULTAS Y REGLAS:\n\nUsa Reglamento para dudas sobre lluvia, vestimenta, normas o políticas. No inventes reglas.\n\nUsa DatosDeCanchas para info técnica de los campos.\n\nFALLOS Y SEGURIDAD:\n\nError persistente: \"Tengo dificultades. Escribí /humano para asistencia personalizada.\"\n\nPrivacidad: Prohibido mostrar IDs internos de la base de datos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2080,
+        352
+      ],
+      "id": "189f11cc-6346-4741-954b-cb4439b41139",
+      "name": "Fulbot",
+      "retryOnFail": false,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/{{ $('Wsp_Webhook').item.json.body.instance }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2800,
+        464
+      ],
+      "id": "1826ceb1-b3ca-4b1b-b5e0-59637217e3be",
+      "name": "Enviar Mensaje De Respuesta",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/{{ $('Wsp_Webhook').item.json.body.instance }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ \"Haz Recibido un strike, si sigues intentando aprobecharte de la IA, bloquearemos tu número\" }}"
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3024,
+        560
+      ],
+      "id": "b26c7a57-1e96-431b-9005-8b9c5fe5882d",
+      "name": "Enviar Mensaje de Suma un Strike",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/{{ $('Wsp_Webhook').item.json.body.instance }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ \"Haz Recibido tu ultimo strike, si vuelves a intentar aprobecharte de la IA, bloquearemos tu número\" }}"
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3024,
+        752
+      ],
+      "id": "9b73b021-6756-496a-a6a9-6ce12f744661",
+      "name": "Enviar Mensaje De Último Strike",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://192.168.0.232:8080/message/sendText/{{ $('Wsp_Webhook').item.json.body.instance }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Wsp_Webhook').item.json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ \"Te haz quedado sin strikes, hemos bloqueado tu numero\" }}"
+            },
+            {
+              "name": "delay",
+              "value": "={{500}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3024,
+        944
+      ],
+      "id": "85931b56-277c-4031-8336-a6d1d76a51ed",
+      "name": "Enviar Mensaje De Bloqueo de Numero",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SZtj6LAPQssoeRn0",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "eb46ca82-159c-4917-b125-458462153056",
+                    "leftValue": "={{ $json.AVISOS }}",
+                    "rightValue": 2,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Aviso"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b652972a-d554-4de5-808f-07d6891ac164",
+                    "leftValue": "={{ $json.AVISOS }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Ultimo Aviso"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.AVISOS }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "id": "b84a8b2b-3269-4405-8619-7adefb9ffaa6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Bloqueo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        2800,
+        736
+      ],
+      "id": "fa1c6274-a46e-4a4e-8f6d-adabbb918dc0",
+      "name": "Cantidad Avisos"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "qL7ccKjS05lysiQM",
+          "mode": "list",
+          "cachedResultName": "EstadoConersasiones",
+          "cachedResultUrl": "/projects/lHzPgAZHrd1ngKym/datatables/qL7ccKjS05lysiQM"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "CHAT_ID",
+              "keyValue": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        752
+      ],
+      "id": "4cf8943b-c672-4621-8319-fbb44f0a1671",
+      "name": "RecuperoEstado_1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "qL7ccKjS05lysiQM",
+          "mode": "list",
+          "cachedResultName": "EstadoConersasiones",
+          "cachedResultUrl": "/projects/lHzPgAZHrd1ngKym/datatables/qL7ccKjS05lysiQM"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "CHAT_ID",
+              "keyValue": "={{ $('Normalizacion').item.json.message.chat_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AVISOS": "={{ $('RecuperarEstado').item.json.AVISOS + 1 }}",
+            "CHAT_ID": "={{ $('Normalizacion').item.json.message.chat_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "CHAT_ID",
+              "displayName": "CHAT_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "AVISOS",
+              "displayName": "AVISOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        752
+      ],
+      "id": "c94a3345-4d85-45f5-bb63-11a452fc205f",
+      "name": "Sumo Strike"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "tableName": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        -1136
+      ],
+      "id": "65902418-0cdb-4db8-b20f-e3ed76b10f1e",
+      "name": "Aviso Nueva Reserva",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1PI0Q0yNenj9aRV1CDgLlliJxTJ9moQoHS9E01Wni26o",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 625794923,
+          "mode": "list",
+          "cachedResultName": "Reservas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PI0Q0yNenj9aRV1CDgLlliJxTJ9moQoHS9E01Wni26o/edit#gid=625794923"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TELEFONO": "={{ $json.payload.TELEFONO }}",
+            "NUMEROCANCHA": "={{ $json.payload.NUMEROCANCHA }}",
+            "PRECIO": "={{ $json.payload.PRECIO }}",
+            "SEÑA": "={{ $json.payload['SEÑA'] }}",
+            "FALTANTE": "={{ $json.payload.FALTANTE }}",
+            "FECHA": "={{ $json.payload.FECHA.split(\"-\")[2] }}/{{ $json.payload.FECHA.split(\"-\")[1] }}/{{ $json.payload.FECHA.split(\"-\")[0] }}",
+            "HORARIO": "={{ $json.payload.HORARIO.split(\":\")[0] }}:{{ $json.payload.HORARIO.split(\":\")[1] }}",
+            "TIEMPO": "={{ $json.payload.TIEMPO }}",
+            "NOMBRE": "={{ $json.payload.NOMBRE }}",
+            "PAGORECIBIDO": "={{ $json.payload.PAGORECIBIDO }}",
+            "IDENTIFICADOR": "={{ $json.payload.IDENTIFICADOR }}",
+            "ESTADO": "={{ $json.payload.ESTADO }}"
+          },
+          "matchingColumns": [
+            "TELEFONO"
+          ],
+          "schema": [
+            {
+              "id": "TELEFONO",
+              "displayName": "TELEFONO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NUMEROCANCHA",
+              "displayName": "NUMEROCANCHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PRECIO",
+              "displayName": "PRECIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SEÑA",
+              "displayName": "SEÑA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FALTANTE",
+              "displayName": "FALTANTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "HORARIO",
+              "displayName": "HORARIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TIEMPO",
+              "displayName": "TIEMPO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NOMBRE",
+              "displayName": "NOMBRE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PAGORECIBIDO",
+              "displayName": "PAGORECIBIDO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IDENTIFICADOR",
+              "displayName": "IDENTIFICADOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ESTADO",
+              "displayName": "ESTADO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1344,
+        -1328
+      ],
+      "id": "f908702b-4cf8-4e56-8170-ee64a64a44f8",
+      "name": "Subida del cambio al spread sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XNixn7c8VlQzbUL6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "tableName": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "firesOn": "DELETE",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1792,
+        -1328
+      ],
+      "id": "8d8e7193-2b70-4427-a379-443d1a17eb13",
+      "name": "Aviso cancelación Reserva Existente",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "tableName": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1792,
+        -1520
+      ],
+      "id": "d0bf7d1c-3419-4f3b-9583-a89b070d4720",
+      "name": "Aviso Cambios Reserva Existente",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0ff3b38-2a82-4f73-9efa-019df1a433a9",
+              "name": "payload.id",
+              "value": "={{ $json.payload.id }}",
+              "type": "number"
+            },
+            {
+              "id": "124a892d-976f-4216-af08-7a440352d442",
+              "name": "payload.NUMEROCANCHA",
+              "value": "={{ $json.payload.NUMEROCANCHA }}",
+              "type": "number"
+            },
+            {
+              "id": "ea02d768-b7fe-46ad-b164-a0ad92bf7a1d",
+              "name": "payload.TELEFONO",
+              "value": "={{ $json.payload.TELEFONO }}",
+              "type": "string"
+            },
+            {
+              "id": "384823c2-6e19-4683-9809-41c5b0225588",
+              "name": "payload.PRECIO",
+              "value": "={{ $json.payload.PRECIO }}",
+              "type": "number"
+            },
+            {
+              "id": "75a03878-fbd5-40c6-b7af-62d1bacd2efe",
+              "name": "payload['SEÑA']",
+              "value": "={{ $json.payload['SEÑA'] }}",
+              "type": "number"
+            },
+            {
+              "id": "22c751b1-85b0-4ad8-9a68-b2d306955ad2",
+              "name": "payload.FALTANTE",
+              "value": "={{ $json.payload.FALTANTE }}",
+              "type": "number"
+            },
+            {
+              "id": "a571b30a-fb17-49a5-a5e0-dc68f3f5ee94",
+              "name": "payload.FECHA",
+              "value": "={{ $json.payload.FECHA }}",
+              "type": "string"
+            },
+            {
+              "id": "58a280f7-e841-4a78-bf2b-b851e13188f0",
+              "name": "payload.HORARIO",
+              "value": "={{ $json.payload.HORARIO }}",
+              "type": "string"
+            },
+            {
+              "id": "ada668a1-70b9-4d3f-9c54-81f1a2ec10d5",
+              "name": "payload.TIEMPO",
+              "value": "={{ $json.payload.TIEMPO }}",
+              "type": "number"
+            },
+            {
+              "id": "aad4e5fb-906b-4ff3-b5d6-87112eed7f7d",
+              "name": "payload.NOMBRE",
+              "value": "={{ $json.payload.NOMBRE }}",
+              "type": "string"
+            },
+            {
+              "id": "b4af1633-69c4-4c40-95c6-e0e7fed1e6a1",
+              "name": "payload.PAGORECIBIDO",
+              "value": "=si",
+              "type": "string"
+            },
+            {
+              "id": "6a19d471-5062-497d-909e-d7c6bcf2f4c3",
+              "name": "payload.IDENTIFICADOR",
+              "value": "={{ $json.payload.IDENTIFICADOR }}",
+              "type": "string"
+            },
+            {
+              "id": "da4e023b-2377-48f6-8bfb-307f0dc1a00d",
+              "name": "payload.ESTADO",
+              "value": "CONFIRMADA",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1568,
+        -1520
+      ],
+      "id": "b78c3b0e-ba22-418a-9594-c3e902ee9872",
+      "name": "Confiramdo y pagado"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0ff3b38-2a82-4f73-9efa-019df1a433a9",
+              "name": "payload.id",
+              "value": "={{ $json.payload.id }}",
+              "type": "number"
+            },
+            {
+              "id": "124a892d-976f-4216-af08-7a440352d442",
+              "name": "payload.NUMEROCANCHA",
+              "value": "={{ $json.payload.NUMEROCANCHA }}",
+              "type": "number"
+            },
+            {
+              "id": "ea02d768-b7fe-46ad-b164-a0ad92bf7a1d",
+              "name": "payload.TELEFONO",
+              "value": "={{ $json.payload.TELEFONO }}",
+              "type": "string"
+            },
+            {
+              "id": "384823c2-6e19-4683-9809-41c5b0225588",
+              "name": "payload.PRECIO",
+              "value": "={{ $json.payload.PRECIO }}",
+              "type": "number"
+            },
+            {
+              "id": "75a03878-fbd5-40c6-b7af-62d1bacd2efe",
+              "name": "payload['SEÑA']",
+              "value": "={{ $json.payload['SEÑA'] }}",
+              "type": "number"
+            },
+            {
+              "id": "22c751b1-85b0-4ad8-9a68-b2d306955ad2",
+              "name": "payload.FALTANTE",
+              "value": "={{ $json.payload.FALTANTE }}",
+              "type": "number"
+            },
+            {
+              "id": "a571b30a-fb17-49a5-a5e0-dc68f3f5ee94",
+              "name": "payload.FECHA",
+              "value": "={{ $json.payload.FECHA }}",
+              "type": "string"
+            },
+            {
+              "id": "58a280f7-e841-4a78-bf2b-b851e13188f0",
+              "name": "payload.HORARIO",
+              "value": "={{ $json.payload.HORARIO }}",
+              "type": "string"
+            },
+            {
+              "id": "ada668a1-70b9-4d3f-9c54-81f1a2ec10d5",
+              "name": "payload.TIEMPO",
+              "value": "={{ $json.payload.TIEMPO }}",
+              "type": "number"
+            },
+            {
+              "id": "aad4e5fb-906b-4ff3-b5d6-87112eed7f7d",
+              "name": "payload.NOMBRE",
+              "value": "={{ $json.payload.NOMBRE }}",
+              "type": "string"
+            },
+            {
+              "id": "b4af1633-69c4-4c40-95c6-e0e7fed1e6a1",
+              "name": "payload.PAGORECIBIDO",
+              "value": "={{ $json.payload.PAGORECIBIDO }}",
+              "type": "string"
+            },
+            {
+              "id": "6a19d471-5062-497d-909e-d7c6bcf2f4c3",
+              "name": "payload.IDENTIFICADOR",
+              "value": "={{ $json.payload.IDENTIFICADOR }}",
+              "type": "string"
+            },
+            {
+              "id": "da4e023b-2377-48f6-8bfb-307f0dc1a00d",
+              "name": "payload.ESTADO",
+              "value": "CANELADA",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1568,
+        -1328
+      ],
+      "id": "17ec2657-90b5-44a7-bd7d-42bb31da47a7",
+      "name": "Cancelada"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "googlesheets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1792,
+        -1744
+      ],
+      "id": "b905e8cc-f62e-4d9f-8da9-64fcbe9be404",
+      "name": "Cambio en canchas",
+      "webhookId": "a591ae2c-4a82-41a3-b9cf-dc7a263156e3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a4de3ac7-a4cf-4ae5-84c2-f425f1d32f0c",
+              "name": "NUMERO",
+              "value": "={{ $json.body.datos[0] }}",
+              "type": "number"
+            },
+            {
+              "id": "af27301f-1156-4028-b870-75469f1c02d1",
+              "name": "FUTBOL",
+              "value": "={{ $json.body.datos[1] }}",
+              "type": "number"
+            },
+            {
+              "id": "b98a1d1d-1e89-4a14-bcc8-0ee06197e52e",
+              "name": "PRECIO",
+              "value": "={{ $json.body.datos[2] }}",
+              "type": "number"
+            },
+            {
+              "id": "90dfedd9-be49-4da2-acc5-d111069cd3d3",
+              "name": "ESTADO",
+              "value": "={{ $json.body.datos[3] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1568,
+        -1744
+      ],
+      "id": "17baa396-81c6-4e18-b9e4-54573290ea99",
+      "name": "Datos del cambio"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO negocio.canchas (\"NUMERO\", \"FUTBOL\", \"PRECIO\", \"ESTADO\")\nVALUES ($1, $2, $3, $4)\nON CONFLICT (\"NUMERO\") \nDO UPDATE SET\n  \"FUTBOL\" = EXCLUDED.\"FUTBOL\",\n  \"PRECIO\" = EXCLUDED.\"PRECIO\",\n  \"ESTADO\" = EXCLUDED.\"ESTADO\";",
+        "options": {
+          "queryReplacement": "={{ $json.NUMERO }},{{ $json.FUTBOL }},{{ $json.PRECIO }},{{ $json.ESTADO }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1344,
+        -1744
+      ],
+      "id": "7767706d-b5a5-40c9-b27f-18b87d995a82",
+      "name": "Cambios a la db",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\n// 1. Obtener el item actual (estructura n8n)\nconst inputData = items[0].json;\n\n// 2. Extraer Headers y Datos necesarios del JSON que me mostraste\nconst headers = inputData.headers;\nconst body = inputData.body;\n\n// Datos críticos para la validación\nconst xSignature = headers['x-signature'];   // \"ts=...,v1=...\"\nconst xRequestId = headers['x-request-id'];  // \"0954e16b-...\"\nconst dataID = body.data.id;                 // \"136940572357\"\n\n// ⚠️ IMPORTANTE: Tu Secret de Producción de MercadoPago\n// Encuéntralo en: Panel de Developer > Notificaciones > Webhooks\nconst SECRET_KEY = '504fdeb8613c99d40a1777bb98154c4e24869af3206d30a244cf89f275ffb793'; \n\n// Validación de seguridad básica: Si no hay firma, rechazamos\nif (!xSignature || !xRequestId || !dataID) {\n  throw new Error('⛔ Faltan datos de seguridad (headers o id). Solicitud rechazada.');\n}\n\n// 3. Desglosar el header x-signature\n// Viene así: \"ts=1765544695,v1=fe7ea...\"\nconst parts = xSignature.split(',');\nlet ts = null;\nlet hash = null;\n\nparts.forEach(part => {\n  const [key, value] = part.split('=');\n  if (key === 'ts') ts = value;\n  if (key === 'v1') hash = value;\n});\n\n// 4. Reconstruir el \"Manifiesto\" (La cadena que firmó MP)\n// El formato OBLIGATORIO es: \"id:[data.id];request-id:[x-request-id];ts:[ts];\"\nconst manifest = `id:${dataID};request-id:${xRequestId};ts:${ts};`;\n\n// 5. Generar nuestro propio Hash HMAC-SHA256\nconst hmac = crypto.createHmac('sha256', SECRET_KEY);\nconst digest = hmac.update(manifest).digest('hex');\n\n// 6. Comparar nuestro hash con el de MercadoPago\nif (digest !== hash) {\n  // Si no coinciden, es un intento de hackeo o la clave está mal\n  throw new Error('⛔ FIRMA INVÁLIDA: El mensaje no proviene de MercadoPago.');\n}\n\n// 7. Si llegamos acá, es válido. Retornamos los datos para seguir el flujo.\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        -688
+      ],
+      "id": "ce13a267-487a-40ec-a8b3-1220f8da6a75",
+      "name": "Validar Firma"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Úsala ÚNICAMENTE cuando el usuario pregunte sobre normas de convivencia, política de cancelación, vestimenta, lluvia, objetos perdidos o reglas del establecimiento. No inventes reglas, usa la información de esta herramienta.",
+        "operation": "get",
+        "documentURL": "1NvpIZ42kHECLAh54u7SEVUoc5WGyilg0LYtFNSKt9K0"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        576
+      ],
+      "id": "47128040-1ab0-4b3e-97cc-9cdb392e114d",
+      "name": "Reglamento",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "QmzdjHdJW1Pkm9Pg",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "canchas",
+          "mode": "list",
+          "cachedResultName": "canchas"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1792,
+        -240
+      ],
+      "id": "a2157c39-104a-4124-9e44-4aba86b73d96",
+      "name": "Todas las Canchas",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1792,
+        -16
+      ],
+      "id": "4b54f88d-1b6f-40e3-ac03-3f3f1b526099",
+      "name": "Todas las Reservas",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "MP_Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "kiersten-glaucescent-funnily.ngrok-free.dev",
+            "user-agent": "MercadoPago WebHook v1.0 payment",
+            "content-length": "189",
+            "accept": "application/json",
+            "accept-encoding": "gzip",
+            "content-type": "application/json",
+            "referer": "https://mercadopago.com.ar",
+            "traceparent": "00-79011b03651e4da5f5a5b3cdd9894e96-4a4374395d200e5c-00",
+            "x-b3-parentspanid": "94c0707334eec61e",
+            "x-b3-sampled": "0",
+            "x-b3-spanid": "4a4374395d200e5c",
+            "x-b3-traceid": "79011b03651e4da5f5a5b3cdd9894e96",
+            "x-forwarded-for": "18.206.34.84",
+            "x-forwarded-host": "kiersten-glaucescent-funnily.ngrok-free.dev",
+            "x-forwarded-proto": "https",
+            "x-request-id": "0954e16b-be00-441a-a790-1c137fc56904",
+            "x-rest-pool-name": "pool_unknown",
+            "x-signature": "ts=1765544695,v1=fe7ea9c7237e1d1486c7dfc4ae811f7826a5487fd1f58b3c23dab3577c377ff4",
+            "x-socket-timeout": "25000",
+            "x-trace-digest-35": "+HLQ8HUVwIdxPo5NjmK/zyTctglHCq3yQmATM4FIVaptBR3S402geRDb9ysIKkFlGwliAAxZhqvoPwYhyVixxUef/5N9y752r1WD2YlewE2JkGpnnAQvSFynlvdKdFGKvle/7J6Hm26axaoB1WAxlHcQIbCTpuwwizzN69yYCkw="
+          },
+          "params": {},
+          "query": {
+            "data.id": "136940572357",
+            "type": "payment"
+          },
+          "body": {
+            "action": "payment.created",
+            "api_version": "v1",
+            "data": {
+              "id": "136940572357"
+            },
+            "date_created": "2025-12-12T13:04:55Z",
+            "id": 127217692826,
+            "live_mode": true,
+            "type": "payment",
+            "user_id": "3031643194"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/a",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Wsp_Webhook": [
+      {
+        "json": {
+          "headers": {
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "user-agent": "axios/1.12.2",
+            "content-length": "1424",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "host": "192.168.0.232:5678",
+            "connection": "keep-alive"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "messages.upsert",
+            "instance": "AgenteIATest",
+            "data": {
+              "key": {
+                "remoteJid": "5491161773862@s.whatsapp.net",
+                "remoteJidAlt": "5491161773862@s.whatsapp.net",
+                "fromMe": false,
+                "id": "AC982C4C7D06CEEB5D40996318E21E53"
+              },
+              "pushName": "Francisco Buiz",
+              "status": "DELIVERY_ACK",
+              "message": {
+                "conversation": "F5, mañana a las 17:00 por una hora, a nombre de Carlos Francisco Buiz, 46700373, buizfrancisco@gmail.com, pago total",
+                "messageContextInfo": {
+                  "deviceListMetadata": {
+                    "senderKeyIndexes": [],
+                    "recipientKeyIndexes": [],
+                    "senderKeyHash": {
+                      "0": 59,
+                      "1": 94,
+                      "2": 103,
+                      "3": 180,
+                      "4": 220,
+                      "5": 46,
+                      "6": 180,
+                      "7": 202,
+                      "8": 7,
+                      "9": 34
+                    },
+                    "senderTimestamp": 1765576408,
+                    "recipientKeyHash": {
+                      "0": 52,
+                      "1": 59,
+                      "2": 224,
+                      "3": 107,
+                      "4": 35,
+                      "5": 180,
+                      "6": 157,
+                      "7": 19,
+                      "8": 224,
+                      "9": 107
+                    },
+                    "recipientTimestamp": 1765499778
+                  },
+                  "deviceListMetadataVersion": 2,
+                  "messageSecret": {
+                    "0": 237,
+                    "1": 147,
+                    "2": 106,
+                    "3": 36,
+                    "4": 211,
+                    "5": 51,
+                    "6": 61,
+                    "7": 159,
+                    "8": 155,
+                    "9": 172,
+                    "10": 224,
+                    "11": 36,
+                    "12": 188,
+                    "13": 82,
+                    "14": 67,
+                    "15": 33,
+                    "16": 218,
+                    "17": 151,
+                    "18": 210,
+                    "19": 19,
+                    "20": 19,
+                    "21": 229,
+                    "22": 39,
+                    "23": 0,
+                    "24": 25,
+                    "25": 120,
+                    "26": 135,
+                    "27": 168,
+                    "28": 96,
+                    "29": 108,
+                    "30": 42,
+                    "31": 13
+                  }
+                }
+              },
+              "messageType": "conversation",
+              "messageTimestamp": 1765656847,
+              "instanceId": "2c5098e0-6ac6-4a43-8dd2-961fec983cc7",
+              "source": "android"
+            },
+            "destination": "http://192.168.0.232:5678/webhook/evolution-api",
+            "date_time": "2025-12-13T17:14:08.556Z",
+            "sender": "5491122824060@s.whatsapp.net",
+            "server_url": "http://localhost:8080",
+            "apikey": "3DFD1E6E75D2-419C-9FFC-918595CA06CE"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/evolution-api",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Aviso Nueva Reserva": [
+      {
+        "json": {
+          "length": 362,
+          "processId": 720,
+          "channel": "n8n_channel_65902418_0cdb_4db8_b20f_e3ed76b10f1e_manual",
+          "payload": {
+            "id": 2,
+            "TELEFONO": "5491161773862",
+            "NUMEROCANCHA": 1,
+            "PRECIO": 50000,
+            "SEÑA": 50000,
+            "FALTANTE": 0,
+            "FECHA": "2025-12-15",
+            "HORARIO": "14:00:00",
+            "TIEMPO": 1,
+            "NOMBRE": "Carlos Francisco Buiz",
+            "PAGORECIBIDO": "no",
+            "IDENTIFICADOR": "00000002",
+            "ESTADO": "ESPERA",
+            "CREATED_AT": "2025-12-14T15:17:11.08995"
+          },
+          "name": "notification"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Aviso cancelación Reserva Existente": [
+      {
+        "json": {
+          "length": 363,
+          "processId": 2759,
+          "channel": "n8n_channel_8d8e7193_2b70_4427_a379_443d1a17eb13_manual",
+          "payload": {
+            "id": 2,
+            "TELEFONO": "5491161773862",
+            "NUMEROCANCHA": 1,
+            "PRECIO": 50000,
+            "SEÑA": 50000,
+            "FALTANTE": 0,
+            "FECHA": "2025-12-15",
+            "HORARIO": "14:00:00",
+            "TIEMPO": 1,
+            "NOMBRE": "Carlos Francisco Buiz",
+            "PAGORECIBIDO": "no",
+            "IDENTIFICADOR": "00000002",
+            "ESTADO": "ESPERA",
+            "CREATED_AT": "2025-12-14T15:37:40.986093"
+          },
+          "name": "notification"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Aviso Cambios Reserva Existente": [
+      {
+        "json": {
+          "length": 362,
+          "processId": 720,
+          "channel": "n8n_channel_65902418_0cdb_4db8_b20f_e3ed76b10f1e_manual",
+          "payload": {
+            "id": 2,
+            "TELEFONO": "5491161773862",
+            "NUMEROCANCHA": 1,
+            "PRECIO": 50000,
+            "SEÑA": 50000,
+            "FALTANTE": 0,
+            "FECHA": "2025-12-15",
+            "HORARIO": "14:00:00",
+            "TIEMPO": 1,
+            "NOMBRE": "Carlos Francisco Buiz",
+            "PAGORECIBIDO": "no",
+            "IDENTIFICADOR": "00000002",
+            "ESTADO": "ESPERA",
+            "CREATED_AT": "2025-12-14T15:17:11.08995"
+          },
+          "name": "notification"
+        }
+      }
+    ],
+    "Cambio en canchas": [
+      {
+        "json": {
+          "headers": {
+            "host": "kiersten-glaucescent-funnily.ngrok-free.dev",
+            "user-agent": "Mozilla/5.0 (compatible; Google-Apps-Script; beanserver; +https://script.google.com; id: UAEmdDd-npjO37nGH2osdULmtDwjcMkFmaA)",
+            "content-length": "120",
+            "accept-encoding": "gzip, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "34.98.136.99",
+            "x-forwarded-host": "kiersten-glaucescent-funnily.ngrok-free.dev",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "tipo_evento": "EDIT",
+            "hoja": "Canchas",
+            "usuario": "buizfrancisco@gmail.com",
+            "fila": 4,
+            "datos": [
+              3,
+              11,
+              110000,
+              "INACTIVA",
+              ""
+            ]
+          },
+          "webhookUrl": "http://localhost:5678/webhook-test/googlesheets",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Json Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails1": {
+      "main": [
+        [
+          {
+            "node": "Contextualizador temporal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sumo Strike",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot": {
+      "main": [
+        [
+          {
+            "node": "Guardrails1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Humano": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje De Asistencia Humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ReservarCanchaFulbot": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RecuperarReservasFulbot": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EliminarReserva": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DatosDeCanchas": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Guardrails1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PosiblesHorarios": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activador de limpieza": {
+      "main": [
+        [
+          {
+            "node": "ESPERA a CANCELADA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ESPERA a CANCELADA": {
+      "main": [
+        []
+      ]
+    },
+    "MP_Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar Firma",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "body.type==\"payment\"": {
+      "main": [
+        [
+          {
+            "node": "Recupero payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recupero payment": {
+      "main": [
+        [
+          {
+            "node": "Esta Aprobado y Acreditado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esta Aprobado y Acreditado?": {
+      "main": [
+        [
+          {
+            "node": "Pago Recibido y Reserva Confirmada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Pago Recibido y Reserva Confirmada": {
+      "main": [
+        [
+          {
+            "node": "Recupero Reserva Completa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recupero Reserva Completa": {
+      "main": [
+        [
+          {
+            "node": "Preparacion del Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparacion del Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje De Pago Recibido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creación de la DB": {
+      "main": [
+        [
+          {
+            "node": "Sumo una tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wsp_Webhook": {
+      "main": [
+        [
+          {
+            "node": "RecuperarEstado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RecuperarEstado": {
+      "main": [
+        [
+          {
+            "node": "Registrado? Con mas de 3 avisos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrado? Con mas de 3 avisos?": {
+      "main": [
+        [
+          {
+            "node": "Registro usuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalizacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mas de 3 avisos, no contesto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registro usuario": {
+      "main": [
+        [
+          {
+            "node": "Normalizacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Necesidad de Asistencia Humana": {
+      "main": [
+        [
+          {
+            "node": "Humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Json Parse": {
+      "main": [
+        [
+          {
+            "node": "Necesidad de Asistencia Humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizacion": {
+      "main": [
+        [
+          {
+            "node": "Load Buffer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Buffer": {
+      "main": [
+        [
+          {
+            "node": "Get messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get messages": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete Buffer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Buffer": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje De Asistencia Humana": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje De Asistencia al numero propio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contextualizador temporal": {
+      "main": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fulbot": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje De Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cantidad Avisos": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje de Suma un Strike",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Mensaje De Último Strike",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Mensaje De Bloqueo de Numero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RecuperoEstado_1": {
+      "main": [
+        [
+          {
+            "node": "Cantidad Avisos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sumo Strike": {
+      "main": [
+        [
+          {
+            "node": "RecuperoEstado_1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso Nueva Reserva": {
+      "main": [
+        [
+          {
+            "node": "Subida del cambio al spread sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso cancelación Reserva Existente": {
+      "main": [
+        [
+          {
+            "node": "Cancelada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso Cambios Reserva Existente": {
+      "main": [
+        [
+          {
+            "node": "Confiramdo y pagado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confiramdo y pagado": {
+      "main": [
+        [
+          {
+            "node": "Subida del cambio al spread sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelada": {
+      "main": [
+        [
+          {
+            "node": "Subida del cambio al spread sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cambio en canchas": {
+      "main": [
+        [
+          {
+            "node": "Datos del cambio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos del cambio": {
+      "main": [
+        [
+          {
+            "node": "Cambios a la db",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Firma": {
+      "main": [
+        [
+          {
+            "node": "body.type==\"payment\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reglamento": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fulbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveDataSuccessExecution": "all"
+  },
+  "versionId": "76fd5f0a-8c79-4ae0-879a-327f8db54537",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "fB7iDuROrcqGX1rc",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}

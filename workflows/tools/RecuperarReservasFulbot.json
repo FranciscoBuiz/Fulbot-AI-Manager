@@ -1,0 +1,252 @@
+{
+  "name": "RecuperarReservasFulbot",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "TELEFONO"
+            },
+            {
+              "name": "NOMBRE"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        16
+      ],
+      "id": "26fdc9d1-45ba-45cf-b7d1-c90442b46be0",
+      "name": "Activación Externa"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "TELEFONO",
+              "value": "={{ $json.TELEFONO }}"
+            },
+            {
+              "column": "NOMBRE",
+              "value": "={{ $json.NOMBRE }}"
+            },
+            {
+              "column": "ESTADO",
+              "condition": "!=",
+              "value": "CANCELADA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        16
+      ],
+      "id": "9eb7afee-0731-4790-b5c9-98967e316ebd",
+      "name": "Recupero Reservas",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0845a446-ef65-4758-848b-8ef631ef9c0a",
+              "leftValue": "={{$json}}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        16
+      ],
+      "id": "852f5e98-03dd-4ca9-b472-67c0d1688e69",
+      "name": "Tiene Reservas Activas?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtenemos TODAS las reservas de la entrada\nconst items = $input.all();\n\nif (items.length === 0) {\n  return []; // Si no hay datos, no devolvemos nada\n}\n\n// 2. Tomamos los datos del cliente del primer item (asumiendo que es el mismo cliente)\nconst cliente = items[0].json; \nconst nombre = cliente.NOMBRE;\nconst telefono = cliente.TELEFONO; // Guardamos el teléfono para usarlo en el nodo de WhatsApp\n\n// 3. Generamos la lista de reservas iterando sobre 'items'\nconst listaReservas = items.map(item => {\n  const r = item.json;\n  // Formateamos la fecha (YYYY-MM-DD -> DD/MM/YYYY)\n  const fechaLatina = r.FECHA.split('T')[0].split('-').reverse().join('/');\n  // Cortamos los segundos del horario\n  const horaCorta = r.HORARIO.slice(0, 5);\n\n  return `🆔 *Reserva #${r.IDENTIFICADOR}*\n    🗓 ${fechaLatina} a las ${horaCorta}hs\n    ⚽ Cancha ${r.NUMEROCANCHA} (Estado: ${r.ESTADO})`;\n}).join('\\n\\n'); // Unimos con doble salto de línea\n\n// 4. Armamos el mensaje final\nconst mensajeFinal = `📋 *Tus Reservas Activas:*\n\n${listaReservas}\n\n👇 *Te esperamos*`;\n\n// 5. IMPORTANTE: Retornamos UN SOLO objeto (Array con 1 elemento)\nreturn [\n  {\n    json: {\n      mensaje_a_cliente: mensajeFinal,\n      telefono_cliente: telefono\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -80
+      ],
+      "id": "19de7ed0-1e7d-429b-9e43-75136c50ea06",
+      "name": "Formateo del mensaje"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "36998b01-ee3f-4397-9e2f-d5dc9d63a9fa",
+              "name": "mensaje_a_cliente",
+              "value": "={{ $json.mensaje_a_cliente }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        -80
+      ],
+      "id": "bb3cf895-4bad-4b8a-9f3c-9a69581fba34",
+      "name": "Mensaje con reservas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b9c2076e-5620-4777-8322-d8c083ea00bd",
+              "name": "mensaje_a_cliente",
+              "value": "🤷‍♂️ No encontramos ningún turno registrado a tu nombre en este momento.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        112
+      ],
+      "id": "4f09f302-38a6-4817-9972-2faf135af2cb",
+      "name": "Mensaje sin reservas"
+    }
+  ],
+  "pinData": {
+    "Activación Externa": [
+      {
+        "json": {
+          "TELEFONO": "5491161773862",
+          "NOMBRE": "Carlos Francisco Buiz"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Activación Externa": {
+      "main": [
+        [
+          {
+            "node": "Recupero Reservas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recupero Reservas": {
+      "main": [
+        [
+          {
+            "node": "Tiene Reservas Activas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tiene Reservas Activas?": {
+      "main": [
+        [
+          {
+            "node": "Formateo del mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensaje sin reservas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formateo del mensaje": {
+      "main": [
+        [
+          {
+            "node": "Mensaje con reservas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4bddba3c-6d9f-4104-8f5f-bd3b706a27af",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "d1vdXLwfHeiJxT15",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}

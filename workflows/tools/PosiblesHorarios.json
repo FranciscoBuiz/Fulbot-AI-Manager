@@ -1,0 +1,176 @@
+{
+  "name": "PosiblesHorarios",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "FUTBOL",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -544,
+        -32
+      ],
+      "id": "12ad5f15-e0d4-42d5-bb1b-eb3410b667ba",
+      "name": "Activación Externa"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    r.\"HORARIO\", \n    r.\"TIEMPO\",\n    (SELECT COUNT(*) FROM negocio.canchas WHERE \"FUTBOL\" = $1 AND \"ESTADO\" = 'activa') as total_canchas\nFROM negocio.reservas r\nJOIN negocio.canchas c ON r.\"NUMEROCANCHA\" = c.\"NUMERO\"\nWHERE c.\"FUTBOL\" = $1 \n  AND r.\"FECHA\" = TO_DATE($2, 'DD/MM/YYYY') -- Esto soluciona el error de rango\n  AND r.\"ESTADO\" NOT IN ('CANCELADA', 'CANCELADO');",
+        "options": {
+          "queryReplacement": "={{ $json.FUTBOL }},{{ $json.FECHA }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -96,
+        -32
+      ],
+      "id": "639056da-6c52-453b-ac75-c60bc020c86a",
+      "name": "Reservas para X dia en X cancha",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const HORA_APERTURA = 9;\nconst HORA_CIERRE = 23;\nconst items = $input.all();\n\nif (items.length === 0) {\n    return [{ json: { franjas_disponibles: [`${String(HORA_APERTURA).padStart(2, '0')}:00 - ${String(HORA_CIERRE).padStart(2, '0')}:00`] } }];\n}\n\nconst totalCanchas = items[0].json.total_canchas || 1;\nconst eventos = [];\n\n// 1. Crear hitos de inicio y fin de reserva\nitems.forEach(item => {\n    if (item.json.HORARIO) {\n        const parts = item.json.HORARIO.split(':');\n        const start = parseInt(parts[0], 10) + (parts[1] ? parseInt(parts[1], 10)/60 : 0);\n        const duration = parseFloat(item.json.TIEMPO || 0);\n        eventos.push({ time: start, type: 1 }); // 1 = inicia reserva\n        eventos.push({ time: start + duration, type: -1 }); // -1 = termina reserva\n    }\n});\n\n// 2. Ordenar hitos cronológicamente\neventos.sort((a, b) => a.time - b.time || a.type);\n\n// 3. Barrido para encontrar huecos donde haya al menos 1 cancha libre\nconst franjasDisponibles = [];\nlet puntero = HORA_APERTURA;\nlet reservasActivas = 0;\n\neventos.forEach(ev => {\n    if (ev.time > puntero && reservasActivas < totalCanchas) {\n        // Si el tiempo actual es mayor al puntero y había capacidad, ese hueco fue disponible\n        if (ev.time > HORA_APERTURA && ev.time <= HORA_CIERRE) {\n            franjasDisponibles.push(`${formato(puntero)} - ${formato(Math.min(ev.time, HORA_CIERRE))}`);\n        }\n    }\n    reservasActivas += ev.type;\n    puntero = Math.max(puntero, ev.time);\n});\n\nif (puntero < HORA_CIERRE) {\n    franjasDisponibles.push(`${formato(puntero)} - ${formato(HORA_CIERRE)}`);\n}\n\nfunction formato(decimal) {\n    const h = Math.floor(decimal);\n    const m = Math.round((decimal - h) * 60);\n    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;\n}\n\n// Limpiar franjas duplicadas o vacías y devolver\nreturn [{ json: { franjas_disponibles: [...new Set(franjasDisponibles)].filter(f => f.split(' - ')[0] !== f.split(' - ')[1]) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -32
+      ],
+      "id": "c0905322-ae18-4d7f-84ca-e5f123c32924",
+      "name": "Franjas horarias disponibles"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a881a818-8531-47f0-84d7-114a66dd0501",
+              "name": "mensaje_a_cliente",
+              "value": "=📅 *HORARIOS DISPONIBLES:*  {{ $json.franjas_disponibles.map(f => '⏰ ' + f).join('\\n') }}  👇 *Respondé con el que prefieras*",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        -32
+      ],
+      "id": "7b1b9b75-2039-4ab6-9436-8914ff69b929",
+      "name": "Preparación del mensaje"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fecha = $json.FECHA; // Esperado: dd/mm/yyyy\n\n// Validaciones Regex\nconst fechaRegex = /^\\d{2}\\/\\d{2}\\/\\d{4}$/;\n\nif (!fechaRegex.test(fecha)) {\n  throw new Error(\"Formato inválido. Fecha debe ser dd/mm/yyyy\");\n}\n\nreturn items;"
+      },
+      "name": "Validar Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -32
+      ],
+      "id": "6a7e8013-6c63-4e23-bc63-4be3e125244c",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {
+    "Activación Externa": [
+      {
+        "json": {
+          "FECHA": "14/12/2025",
+          "FUTBOL": 5
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Activación Externa": {
+      "main": [
+        [
+          {
+            "node": "Validar Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reservas para X dia en X cancha": {
+      "main": [
+        [
+          {
+            "node": "Franjas horarias disponibles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Franjas horarias disponibles": {
+      "main": [
+        [
+          {
+            "node": "Preparación del mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Inputs": {
+      "main": [
+        [
+          {
+            "node": "Reservas para X dia en X cancha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "44bb500b-dfb9-43b3-91ab-b9061d06d2c1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "5V6I2THeKfU2YSui",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}

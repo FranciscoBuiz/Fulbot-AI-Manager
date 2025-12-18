@@ -1,0 +1,513 @@
+{
+  "name": "ReservarCanchaFulbot",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mercadopago.com/checkout/preferences",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"items\": [\n    {\n      \"id\": \"{{ $json.IDENTIFICADOR }}\",\n      \"title\": \"Reserva de Cancha de Futbol\",\n      \"description\": \"Reserva de Cancha de Futbol\",\n      \"category_id\": \"producto\",\n      \"quantity\": 1,\n      \"currency_id\": \"ARS\",\n      \"unit_price\": {{ $('Activación Externa').item.json['SEÑA'] }}\n    }\n  ],\n  \"payer\": {\n    \"name\": \"{{ $('Activación Externa').item.json.NOMBRE }}\",\n    \"surname\": \"{{ $('Activación Externa').item.json.APELLIDO }}\",\n    \"email\": \"{{ $('Activación Externa').item.json.EMAIL }}\",\n    \"phone\": {\n      \"area_code\": \"54\",\n      \"number\": {{ $('Activación Externa').item.json.TELEFONO.substring(2,13) }}\n    },\n    \"identification\": {\n      \"type\": \"DNI\",\n      \"number\": \"{{ $('Activación Externa').item.json.DNI }}\"\n    }\n  },\n  \"payment_methods\": {\n    \"excluded_payment_types\": [\n      {\n        \"id\": \"credit_card\"\n      }\n    ],\n    \"installments\": 1\n  },\n  \"external_reference\": \"{{ $json.IDENTIFICADOR }}\",\n  \"metadata\": {\n    \"chat_id\": \"{{ $('Activación Externa').item.json.TELEFONO+'@s.whatsapp.net' }}\",\n    \"id_reserva\": \"{{ $json.IDENTIFICADOR }}\"\n  },\n\"expires\": true,\n  \"expiration_date_to\": \"{{ $now.plus({ minutes: 15 }).toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        256
+      ],
+      "id": "81b66a56-33e8-4c68-9509-92c96bdf3e0f",
+      "name": "Cupones de Pago",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "tEvz93nggNRTHJqx",
+          "name": "mp-prueba"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fecha = $json.FECHA; // Esperado: dd/mm/yyyy\nconst horario = $json.HORARIO; // Esperado: HH:MM\n\n// Validaciones Regex\nconst fechaRegex = /^\\d{2}\\/\\d{2}\\/\\d{4}$/;\nconst horarioRegex = /^\\d{2}:00$/; // Solo horas en punto según reglas\n\nif (!fechaRegex.test(fecha) || !horarioRegex.test(horario)) {\n  throw new Error(\"Formato inválido. Fecha debe ser dd/mm/yyyy y Horario HH:00\");\n}\n\nreturn items;"
+      },
+      "name": "Validar Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        352
+      ],
+      "id": "9e6c8037-1e2b-4356-bca3-d844caabda2e",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "TELEFONO"
+            },
+            {
+              "name": "FUTBOL",
+              "type": "number"
+            },
+            {
+              "name": "SEÑA",
+              "type": "number"
+            },
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "HORARIO"
+            },
+            {
+              "name": "TIEMPO",
+              "type": "number"
+            },
+            {
+              "name": "NOMBRE"
+            },
+            {
+              "name": "APELLIDO"
+            },
+            {
+              "name": "DNI",
+              "type": "number"
+            },
+            {
+              "name": "EMAIL"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "Activación Externa",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        224,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "F2fokid3AZgTDMFv",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/F2fokid3AZgTDMFv",
+          "cachedResultName": "VerDisponibilidadFulbot"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TIEMPO": "={{ $json.TIEMPO }}",
+            "FECHA": "={{ $json.FECHA }}",
+            "HORARIO": "={{ $json.HORARIO }}",
+            "FUTBOL": "={{ $json.FUTBOL }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "FUTBOL",
+              "displayName": "FUTBOL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "HORARIO",
+              "displayName": "HORARIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "TIEMPO",
+              "displayName": "TIEMPO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        352
+      ],
+      "id": "c3d53009-83ae-458e-b946-315eae064640",
+      "name": "VerDisponibilidadFulbot"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "192f7521-2495-4dba-8e7c-ba3a74417c3f",
+              "leftValue": "={{ $json.disponibilidad }}",
+              "rightValue": "[{}]",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "79e8f1e4-8baf-4fc4-9e17-d43250f88f67",
+              "leftValue": "={{ $json.disponibilidad }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        352
+      ],
+      "id": "6dc68f00-c5ae-4023-a5a0-367bdc15a21c",
+      "name": "Disponible?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "5V6I2THeKfU2YSui",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5V6I2THeKfU2YSui",
+          "cachedResultName": "PosiblesHorarios"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "FECHA": "={{ $('Activación Externa').item.json.FECHA }}",
+            "FUTBOL": "={{ $('Activación Externa').item.json.FUTBOL }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "FUTBOL",
+              "displayName": "FUTBOL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        448
+      ],
+      "id": "3aa0462f-bda7-418a-8951-c5d62ccabce1",
+      "name": "PosiblesHorarios"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "324d5df6-aa00-4c73-b74b-8272997cd7c5",
+              "name": "mensaje_a_cliente",
+              "value": "=⛔ *ESE HORARIO YA ESTÁ OCUPADO*\n\nAcá te dejo los que quedan libres:\n\n{{ $json.mensaje_a_cliente }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        448
+      ],
+      "id": "d028b910-5432-49d6-91e0-02e7ad3d1285",
+      "name": "Mensaje de Posibles horarios"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO negocio.reservas (\n    \"TELEFONO\", \n    \"NUMEROCANCHA\", \n    \"FECHA\", \n    \"HORARIO\", \n    \"TIEMPO\", \n    \"SEÑA\", \n    \"NOMBRE\", \n    \"PRECIO\",\n    \"PAGORECIBIDO\"\n)\nSELECT \n    $1, \n    $2, \n    TO_DATE($3, 'DD/MM/YYYY')::timestamp AT TIME ZONE 'America/Argentina/Buenos_Aires', \n    $4::TIME, \n    $5, \n    $6, \n    $7, \n    (c.\"PRECIO\" * $5),\n    'no'\nFROM negocio.canchas c\nWHERE c.\"NUMERO\" = $2\nRETURNING \"IDENTIFICADOR\", \"FALTANTE\", \"PRECIO\";",
+        "options": {
+          "queryReplacement": "={{ $('Activación Externa').item.json.TELEFONO }}, {{ $json.nuemrocancha_libre }},{{ $('Activación Externa').item.json.FECHA }} , {{ $('Activación Externa').item.json.HORARIO }},{{ $('Activación Externa').item.json.TIEMPO }} , {{ $('Activación Externa').item.json['SEÑA'] }}, {{ $('Activación Externa').item.json.NOMBRE }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        256
+      ],
+      "id": "1852bc23-9d2d-4965-b3fa-33eff3bbd25f",
+      "name": "Inserción de Reserva",
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "negocio",
+          "mode": "list",
+          "cachedResultName": "negocio"
+        },
+        "table": {
+          "__rl": true,
+          "value": "reservas",
+          "mode": "list",
+          "cachedResultName": "reservas"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "IDENTIFICADOR",
+              "value": "={{ $json.IDENTIFICADOR }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1344,
+        256
+      ],
+      "id": "d1018b72-dc3a-46cf-954a-39c24cc67e3e",
+      "name": "Recupero Nueva Reserva",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "619cf998-2dd2-4b60-8d33-26e320d532a9",
+              "name": "mensaje_a_cliente",
+              "value": "=⚽ *HOLA:*  $('Activación Externa').item.json.NOMBRE }}\n📅 *Reserva:* {{ $('Activación Externa').item.json.FECHA }} a las {{ $('Activación Externa').item.json.HORARIO }} hs\n💰 *Abonar Seña:* ${{ $('Activación Externa').item.json['SEÑA'] }}\n🔗 *Link:* {{ $json.init_point }}\n⚠️ *Expira en 15 minutos* luego de ese plazo de eliminara la reserva para dar lugar a otra persona",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        256
+      ],
+      "id": "98e2bfbc-55e3-4a38-a7df-b33d806ce2de",
+      "name": "Mensaje Con Link de Pago"
+    }
+  ],
+  "pinData": {
+    "Activación Externa": [
+      {
+        "json": {
+          "TELEFONO": "5491161773862",
+          "FUTBOL": 5,
+          "SEÑA": 50000,
+          "FECHA": "19/12/2025",
+          "HORARIO": "14:00",
+          "TIEMPO": 1,
+          "NOMBRE": "Carlos Francisco Buiz",
+          "APELLIDO": "Buiz",
+          "DNI": 46700373,
+          "EMAIL": "buizfrancisco@gmail.com"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Cupones de Pago": {
+      "main": [
+        [
+          {
+            "node": "Mensaje Con Link de Pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Inputs": {
+      "main": [
+        [
+          {
+            "node": "VerDisponibilidadFulbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activación Externa": {
+      "main": [
+        [
+          {
+            "node": "Validar Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerDisponibilidadFulbot": {
+      "main": [
+        [
+          {
+            "node": "Disponible?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Disponible?": {
+      "main": [
+        [
+          {
+            "node": "Inserción de Reserva",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PosiblesHorarios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PosiblesHorarios": {
+      "main": [
+        [
+          {
+            "node": "Mensaje de Posibles horarios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inserción de Reserva": {
+      "main": [
+        [
+          {
+            "node": "Recupero Nueva Reserva",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recupero Nueva Reserva": {
+      "main": [
+        [
+          {
+            "node": "Cupones de Pago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "aef9922e-3484-44b6-a214-9c7de862982f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "wzAflaxlKfNwlsra",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}

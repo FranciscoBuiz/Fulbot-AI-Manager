@@ -1,0 +1,224 @@
+{
+  "name": "VerDisponibilidadFulbot",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Obtenemos los datos de entrada\nconst inputData = items[0].json;\nconst repeticiones = inputData.TIEMPO;\nconst fechaString = inputData.FECHA;     // \"08/12/2025\"\nconst horarioString = inputData.HORARIO; // \"23:00\"\n\n// 1. Desarmamos el texto para crear un objeto Fecha nativo de JS\n// Dividimos la fecha por la barra \"/\"\nconst partesFecha = fechaString.split('/'); // [\"08\", \"12\", \"2025\"]\n// Dividimos la hora por los dos puntos \":\"\nconst partesHora = horarioString.split(':'); // [\"23\", \"00\"]\n\n// Creamos la fecha base.\n// OJO: En Javascript los meses van de 0 a 11 (Enero es 0, Diciembre es 11)\n// Por eso restamos 1 al mes (partesFecha[1] - 1)\nconst fechaBase = new Date(\n    partesFecha[2],       // Año\n    partesFecha[1] - 1,   // Mes (0-indexado)\n    partesFecha[0],       // Día\n    partesHora[0],        // Horas\n    partesHora[1]         // Minutos\n);\n\nconst resultados = [];\n\n// Función auxiliar para agregar el cero a la izquierda (ej: 9 -> 09)\nconst pad = (num) => num.toString().padStart(2, '0');\n\nfor (let i = 0; i < repeticiones; i++) {\n  \n  // Clonamos la fecha base para no modificar la original\n  let nuevaFecha = new Date(fechaBase);\n  \n  // Sumamos las horas (JS maneja el cambio de día/mes/año solo)\n  nuevaFecha.setHours(fechaBase.getHours() + (i));\n\n  // Formateamos de vuelta a texto para que n8n lo lea bonito\n  const fechaFormateada = `${pad(nuevaFecha.getDate())}/${pad(nuevaFecha.getMonth() + 1)}/${nuevaFecha.getFullYear()}`;\n  const horaFormateada = `${pad(nuevaFecha.getHours())}:${pad(nuevaFecha.getMinutes())}`;\n\n  resultados.push({\n    json: {\n      ...inputData,\n      \"FECHA\": fechaFormateada,\n      \"HORARIO\": horaFormateada,\n      \"bloque_nro\": i + 1\n    }\n  });\n}\n\nreturn resultados;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        480
+      ],
+      "id": "f8b8651a-4b34-4e3e-9e60-8519875a7984",
+      "name": "Generar Bloques Horarios"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \"NUMERO\" as numerocancha_libre\nFROM negocio.canchas\nWHERE \"FUTBOL\" = $1 \n  AND \"ESTADO\" = 'activa'\n  AND \"NUMERO\" NOT IN (\n    SELECT r.\"NUMEROCANCHA\"\n    FROM negocio.reservas r\n    WHERE r.\"ESTADO\" NOT IN ('CANCELADA', 'CANCELADO')\n      AND tsrange(\n          (r.\"FECHA\" + r.\"HORARIO\"), \n          (r.\"FECHA\" + r.\"HORARIO\" + (r.\"TIEMPO\" * interval '1 hour')), \n          '[)'\n      ) && tsrange(\n          to_timestamp($2 || ' ' || $3, 'DD/MM/YYYY HH24:MI')::timestamp,\n          (to_timestamp($2 || ' ' || $3, 'DD/MM/YYYY HH24:MI') + interval '1 hour' * $4)::timestamp,\n          '[)'\n      )\n  )\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.FUTBOL }},{{ $json.FECHA }},{{ $json.HORARIO }},{{ $json.TIEMPO }}"
+        }
+      },
+      "id": "3289da7b-22f1-47be-9c8b-139888c41151",
+      "name": "Consultar Disponibilidad",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1344,
+        480
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "AoDwSZhy27WNmTsX",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"disponibilidad\": false,\n  \"motivo\": \"Horario ocupado: {{ $('Loop Over Items').item.json.HORARIO }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        576
+      ],
+      "id": "eda98617-9fbe-4d4a-9f53-b5c0b27d3cac",
+      "name": "Set: Ocupado"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"disponibilidad\": true\n  \"nuemrocancha_libre\": {{ $('If').item.json.numerocancha_libre }}\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        384
+      ],
+      "id": "dfac3cca-b066-457a-82b4-036e330badcd",
+      "name": "Set: Disponible"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "27f6b568-e517-4e17-89bc-fc271b58679c",
+              "leftValue": "={{ $json.numerocancha_libre }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        480
+      ],
+      "id": "f88435ae-32a0-48a1-aaee-14b71ae18c71",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "FUTBOL",
+              "type": "number"
+            },
+            {
+              "name": "FECHA"
+            },
+            {
+              "name": "HORARIO"
+            },
+            {
+              "name": "TIEMPO",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "264bd056-b114-4baa-9e97-07701373546f",
+      "typeVersion": 1.1,
+      "name": "Activación Externa",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        896,
+        480
+      ]
+    }
+  ],
+  "pinData": {
+    "Activación Externa": [
+      {
+        "json": {
+          "FUTBOL": 5,
+          "FECHA": "19/12/2025",
+          "HORARIO": "17:00",
+          "TIEMPO": 1
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Generar Bloques Horarios": {
+      "main": [
+        [
+          {
+            "node": "Consultar Disponibilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Disponibilidad": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Set: Disponible",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set: Ocupado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activación Externa": {
+      "main": [
+        [
+          {
+            "node": "Generar Bloques Horarios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "55a1711b-3ddb-44b9-bacd-77512f5bfb4a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feb295d752b55192c0a91396ac1275e3869628ab7c3b417b06519ff7a25b086f"
+  },
+  "id": "F2fokid3AZgTDMFv",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T14:46:20.003Z",
+      "createdAt": "2025-12-11T14:46:20.003Z",
+      "id": "sug1lILaQe9sxWni",
+      "name": "Fulbot"
+    }
+  ]
+}
