@@ -1,86 +1,112 @@
 # ⚽ Fulbot AI Manager
 
-Este repositorio contiene un flujo de trabajo avanzado de **n8n** que implementa un agente de Inteligencia Artificial para automatizar la gestión de un complejo de canchas de fútbol vía WhatsApp.
+Este repositorio contiene un ecosistema avanzado de automatización basado en **n8n** para la gestión integral de un complejo de canchas de fútbol. El sistema actúa como un agente de IA autónomo capaz de conversar con clientes vía WhatsApp, procesar reservas, gestionar pagos y administrar cancelaciones.
 
-El sistema utiliza un enfoque híbrido: **Google Gemini** como cerebro principal para la conversación y gestión de herramientas, y **Llama 3.3 (70B)** dedicado a la capa de seguridad (Guardrails).
+## 🤖 Arquitectura del Agente
 
-## ✨ Características Principales
+El corazón del sistema es un agente de **Google Gemini** configurado con herramientas específicas (sub-flujos) para interactuar con la base de datos y servicios externos.
 
-  * **🤖 IA Híbrida:** Utiliza **Google Gemini** para interpretar intenciones complejas y manejar la lógica del negocio, asegurando respuestas rápidas y precisas.
-  * **🛡️ Seguridad Avanzada (Guardrails):** Implementa **Llama 3.3 70B** específicamente para filtrar inputs maliciosos y moderar el contenido antes de que llegue al agente principal.
-  * **📅 Gestión de Reservas Inteligente:** Verifica disponibilidad con precisión utilizando tipos de datos de rango (`tsrange`) en PostgreSQL para evitar solapamientos exactos o parciales.
-  * **💸 Pagos Automáticos:** Integración con Webhooks de MercadoPago para confirmar pagos recibidos y actualizar el estado de la reserva en tiempo real.
-  * **🚫 Sistema de Strikes:** Detecta intentos de manipulación (*jailbreak*) y bloquea usuarios automáticamente tras 3 advertencias ("strikes").
-  * **🧠 Memoria Contextual:** Utiliza una ventana de memoria buffer y **Redis** para mantener la coherencia en la charla.
-  * **⚡ Buffer de Mensajes:** Implementa **Redis** para encolar mensajes entrantes, evitando condiciones de carrera si el usuario envía múltiples mensajes rápidos.
-  * **👨‍💻 Derivación a Humano:** Comando `/humano` o detección automática para pausar la IA y solicitar asistencia.
+### 🧠 Capas de Inteligencia
 
-## 🛠️ Stack Tecnológico
+* **Agente Principal:** `Google Gemini` (Chat Model) encargado de la lógica de negocio y toma de decisiones.
+* **Capa de Seguridad (Guardrails):** `Llama 3.3 (70B)` actúa como filtro para detectar intentos de manipulación o contenido inapropiado antes de procesar el mensaje.
+* **Memoria:** Ventana de memoria buffer para mantener el contexto de la conversación.
 
-  * **Orquestador:** [n8n](https://n8n.io/)
-  * **LLM Principal:** `Google Gemini` (Chat Model).
-  * **LLM Guardrails:** `llama-3.3-70b-versatile` (Vía nodo OpenAI/Groq).
-  * **Base de Datos:** PostgreSQL (Con extensión `btree_gist`).
-  * **Gestión de Estados:** n8n Data Tables.
-  * **Cache/Buffer:** Redis.
-  * **Mensajería:** WhatsApp (vía API Gateway, ej: Evolution API).
-  * **Pagos:** MercadoPago API.
+---
 
-## 📋 Requisitos Previos
+## 🛠️ Herramientas y Sub-flujos (Tools)
 
-Para que este flujo funcione, necesitas:
+El agente tiene acceso a un kit de herramientas especializadas ubicadas en `/workflows/tools/`:
 
-1.  Una instancia de **n8n**.
-2.  Servidor de **PostgreSQL** (con permisos para crear extensiones).
-3.  Servidor de **Redis**.
-4.  **API Key de Google Gemini** (PaLM/Gemini API).
-5.  **API Key para Llama 3.3** (Groq o proveedor compatible con OpenAI).
-6.  Cuenta de **MercadoPago** (Access Token).
-7.  Una API de WhatsApp (Evolution API o similar).
+### 1. 📅 ReservarCanchaFulbot
 
-## ⚙️ Configuración de Base de Datos (PostgreSQL)
+Gestiona el proceso de alta de turnos.
 
-⚠️ **IMPORTANTE:** El esquema ha sido actualizado para usar restricciones de exclusión (`EXCLUDE`). Asegúrate de ejecutar este script, ya que la versión anterior con `UNIQUE` no soporta rangos de tiempo complejos.
+* **Validación:** Verifica que el horario sea "en punto" (HH:00).
+* **Disponibilidad:** Llama internamente a `VerDisponibilidadFulbot`.
+* **Pagos:** Si hay disponibilidad, inserta la reserva en PostgreSQL y genera un **Link de Pago de Mercado Pago** con vencimiento de 15 minutos.
+
+### 2. 🔍 VerDisponibilidadFulbot
+
+Lógica técnica para evitar solapamientos.
+
+* Utiliza tipos de datos de rango (`tsrange`) en PostgreSQL para asegurar que no existan colisiones horarias entre reservas.
+
+### 3. ⏰ PosiblesHorarios
+
+Herramienta de asistencia al cliente.
+
+* Si el horario solicitado está ocupado, este flujo escanea la agenda del día (09:00 a 23:00) y devuelve una lista de franjas horarias libres al cliente.
+
+### 4. 📋 RecuperarReservasFulbot
+
+* Permite al cliente consultar todas sus reservas activas asociadas a su nombre y número de teléfono, devolviendo un listado formateado.
+
+### 5. ❌ EliminarReservaFulbot
+
+Aplica las políticas comerciales automáticamente:
+
+* **Antelación > 24hs:** Cancela la reserva y confirma el reintegro de la seña.
+* **Antelación < 24hs:** Cancela el turno pero informa que la seña no es reembolsable.
+* **Casos críticos:** Si hay errores, deriva automáticamente al soporte humano.
+
+---
+
+## ⚙️ Integraciones y Automatizaciones
+
+El flujo principal (`Fulbot-AI-Manager.json`) incluye procesos de segundo plano:
+
+* **💳 Webhook de Mercado Pago:** Procesa notificaciones en tiempo real, valida la firma de seguridad, acredita el pago en la base de datos y envía un mensaje de confirmación automática al cliente.
+* **🔄 Sincronización con Google Sheets:** Cada cambio en la base de datos (alta, modificación o cancelación) se refleja automáticamente en una hoja de cálculo para control administrativo.
+* **🧹 Limpieza Automática:** Un cronjob cada 30 minutos cancela aquellas reservas en estado "ESPERA" que no completaron el pago a tiempo.
+* **⚡ Buffer de Mensajes (Redis):** Gestiona la cola de mensajes entrantes para evitar que mensajes múltiples del mismo usuario confundan a la IA.
+
+---
+
+## 📋 Requisitos Técnicos
+
+1. **n8n** (Versión reciente con soporte para LangChain).
+2. **PostgreSQL** con extensión `btree_gist` para manejo de rangos.
+3. **Redis** para la gestión de estados y buffer.
+4. **API Keys:** Google Gemini, Groq (Llama 3.3), Mercado Pago y Evolution API (WhatsApp).
+
+## 🚀 Configuración de la Base de Datos
+
+Es fundamental ejecutar el esquema definido en el flujo de **Creación de la DB** para habilitar la protección anti-solapamiento:
 
 ```sql
--- 1. Extensiones (Necesaria para restricciones de exclusión con enteros y rangos)
+-- 1. EXTENSIONES (Nivel Base de Datos)
+-- Necesaria para que funcione la restricción de exclusión con enteros (NUMEROCANCHA)
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
--- 2. Esquema
+-- 2. REINICIAR ESQUEMA
 DROP SCHEMA IF EXISTS negocio CASCADE;
 CREATE SCHEMA negocio;
 
--- 3. Tabla de Canchas
+-- 3. TABLA CANCHAS (Debe crearse primero porque 'reservas' depende de ella)
 CREATE TABLE IF NOT EXISTS negocio.canchas (
-    "NUMERO" INTEGER PRIMARY KEY,
+    "NUMERO" SERIAL PRIMARY KEY,
     "FUTBOL" INTEGER,
-    "PRECIO" NUMERIC(15, 2)
+    "PRECIO" NUMERIC(15, 2),
+    "ESTADO" VARCHAR(10)
 );
 
--- Datos iniciales
-INSERT INTO negocio.canchas ("NUMERO", "FUTBOL", "PRECIO") 
-VALUES (1, 5, 50000), (2, 7, 70000)
-ON CONFLICT ("NUMERO") DO NOTHING;
-
--- 4. Tabla de Reservas (Con protección avanzada anti-solapamiento)
+-- 4. TABLA RESERVAS (Con la protección anti-solapamiento incluida)
 CREATE TABLE IF NOT EXISTS negocio.reservas (
     id SERIAL PRIMARY KEY,
     "TELEFONO" VARCHAR(50),
     "NUMEROCANCHA" INTEGER REFERENCES negocio.canchas("NUMERO"),
     "PRECIO" NUMERIC(15, 2),
     "SEÑA" NUMERIC(15, 2),
-    "FALTANTE" NUMERIC(15, 2) GENERATED ALWAYS AS ("PRECIO" - "SEÑA") STORED,
-    "FECHA" DATE,
-    "HORARIO" TIME,
+    "FALTANTE" NUMERIC(15, 2) GENERATED ALWAYS AS ("PRECIO" - "SEÑA") STORED, 
+    "FECHA" DATE,   
+    "HORARIO" TIME, 
     "TIEMPO" NUMERIC(5, 1),
     "NOMBRE" VARCHAR(255),
     "PAGORECIBIDO" VARCHAR(10) DEFAULT 'no',
     "IDENTIFICADOR" VARCHAR(8) GENERATED ALWAYS AS (LPAD(id::TEXT, 8, '0')) STORED UNIQUE,
     "ESTADO" VARCHAR(20) DEFAULT 'ESPERA',
     "CREATED_AT" TIMESTAMP DEFAULT NOW(),
-    
-    -- Restricción de exclusión:
-    -- Evita que se reserve la misma cancha si los rangos de tiempo se superponen.
     CONSTRAINT evitar_superposicion_canchas
     EXCLUDE USING gist (
         "NUMEROCANCHA" WITH =,
@@ -91,35 +117,9 @@ CREATE TABLE IF NOT EXISTS negocio.reservas (
         ) WITH &&
     )
 );
-````
 
-### 🚀 Instalación y Configuración en n8n
+```
 
-1.  **Importar:** Carga el archivo `Fulbot-AI-Manager.json` y los flujos de las herramientas.
-2.  **Credenciales:**
-      * **Google Gemini(PaLM) Api account:** Para el agente principal.
-      * **OpenAi account:** Para el nodo de Guardrails (usando Llama 3.3).
-      * **Postgres account:** Conexión a tu BD.
-      * **Redis account:** Conexión a Redis.
-      * **Bearer Auth account:** Para la API de WhatsApp.
-      * **mp-prueba:** Para MercadoPago.
-3.  **Data Tables:**
-      * Asegúrate de tener la tabla `EstadoConersasiones` (Columns: `CHAT_ID`, `STATUS`, `FECHA`, `AVISOS`).
-4.  **Tools (Sub-flujos):**
-    Asegúrate de que los nodos "Call Workflow" o "Tool" en el agente apunten a los ID correctos de estos flujos:
-      * `VerDisponibilidadFulbot`
-      * `ReservarCanchaFulbot`
-      * `RecuperarReservasFulbot`
-      * `EliminarReservaFulbot`
-      * `PosiblesHorarios`
+---
 
-### ⚠️ Lógica de Seguridad (Strikes)
-
-1.  **Entrada:** El mensaje pasa por **Guardrails** (Llama 3.3).
-2.  **Detección:** Si se detecta *jailbreak* o contenido inapropiado, se incrementa el contador de avisos en `EstadoConersasiones`.
-3.  **Consecuencias:**
-      * **Aviso 1-2:** Advertencia.
-      * **Aviso 3:** Último aviso.
-      * **Aviso 4:** Bloqueo permanente (la IA deja de responder).
-
-#### Desarrollado con ❤️ usando n8n.
+*Desarrollado para la gestión inteligente de complejos deportivos.*
